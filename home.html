@@ -52,6 +52,61 @@
             </div>
         </aside>
 
+
+        <main class="main-column">
+            <div data-home-feed-view>
+                <div class="page-heading">
+                    <div>
+                        <p class="eyebrow"></p>
+                        <h1>Your feed</h1>
+                    </div><button class="icon-button search-shortcut" data-action="focus-search"
+                        aria-label="Search">⌕</button>
+                </div>
+                <div class="feed-tabs" role="tablist"><button class="feed-tab" data-feed="for-you">For
+                        you</button><button class="feed-tab active" data-feed="friends">Friends</button></div>
+                <section class="composer" aria-label="Create a post">
+                    <a class="avatar" href="profile.html"></a>
+                    <div class="composer-main"><textarea id="post-text" placeholder="What’s on your mind?" rows="2"
+                            aria-label="Post text"></textarea>
+                        <div class="composer-bottom">
+                            <div class="composer-tools"><label class="privacy-select"><select id="post-privacy"
+                                        aria-label="Post audience">
+                                        <option value="public">Everyone</option>
+                                        <option value="friends">Friends only</option>
+                                    </select></label><label class="icon-button attach-button"
+                                    title="Attach a photo or video"><i class="fa-regular fa-image"></i><input
+                                        id="post-image" type="file" accept="image/*,video/*" data-post-media
+                                        aria-label="Attach a photo or video"></label></div><button
+                                class="button button-primary" data-action="create-post">Share post</button>
+                        </div>
+                        <div class="media-preview" data-post-media-preview hidden></div>
+                        <p class="media-notice" data-post-media-notice role="status"></p>
+                    </div>
+                </section>
+                <div class="feed-list" data-feed-list></div>
+                <div class="empty-state hidden" data-empty-feed><span class="empty-symbol">✳</span>
+                    <h2>A little quiet here</h2>
+                    <p>Connect with people to bring more voices into your feed.</p><a class="button button-secondary"
+                        href="explore.html">Find your people</a>
+                </div>
+            </div>
+            <section class="hidden" data-home-post-detail>
+                <div class="page-heading"><a class="back-button" href="index.html" aria-label="Back to feed">←</a>
+                    <div>
+                        <h1 data-home-post-heading>Post and replies</h1>
+                    </div>
+                </div>
+                <div data-home-post-detail-content></div>
+                <div class="empty-state hidden" data-home-post-not-found><span class="empty-symbol">✳</span>
+                    <h2>Post unavailable</h2>
+                    <p>This post may have been removed or you may not have permission to view it.</p><a
+                        class="button button-secondary" href="index.html">Return to your feed</a>
+                </div>
+            </section>
+        </main>
+
+
+
     </div>
     <nav class="mobile-nav" aria-label="Mobile navigation"><a class="active" href="index.html" aria-label="Home"><i
                 class="fa-regular fa-house"></i></a><a href="explore.html" aria-label="Explore"><i
