@@ -145,6 +145,35 @@
                 class="fa-regular fa-user"></i></a>
     </nav>
 
+
+      <dialog class="modal" data-edit-modal>
+        <form method="dialog" class="modal-content"><button class="modal-close" aria-label="Close">×</button>
+            <h2>Edit your profile</h2><label class="field-label">Your name<input name="name" required
+                    maxlength="48"></label><label class="field-label">Bio<textarea name="bio" rows="3"
+                    maxlength="180"></textarea></label><label class="field-label">Location<input name="location"
+                    maxlength="48"></label><label class="field-label">Profile photo<input name="photo" type="file"
+                    accept="image/*" data-avatar-file></label><img class="photo-preview" data-avatar-preview
+                alt="Profile photo preview" hidden>
+            <p class="photo-notice" data-photo-notice role="status"></p><label class="field-label">Banner photo<input
+                    name="banner" type="file" accept="image/*" data-banner-file></label>
+            <p class="photo-notice" data-banner-notice role="status"></p><button class="button button-primary"
+                type="button" data-action="save-profile">Save changes</button>
+        </form>
+    </dialog>
+    
+    <dialog class="modal" data-connections-modal>
+        <div class="modal-content"><button class="modal-close" type="button" data-action="close-dialog"
+                aria-label="Close">×</button>
+            <h2 data-connections-title>Following</h2>
+            <div class="feed-tabs connection-tabs" role="tablist" aria-label="People lists"><button class="feed-tab"
+                    type="button" data-action="show-connections" data-connection="following">Following</button><button
+                    class="feed-tab" type="button" data-action="show-connections"
+                    data-connection="followers">Followers</button><button class="feed-tab" type="button"
+                    data-action="show-connections" data-connection="friends">Friends</button></div>
+            <div data-connection-list></div>
+        </div>
+    </dialog>
+
 </body>
 
 </html>
