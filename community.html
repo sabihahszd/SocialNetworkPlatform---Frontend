@@ -47,6 +47,115 @@
             </div>
         </aside>
 
+
+        <main class="main-column community-main">
+            <section class="community-directory-view" data-community-index>
+                <div class="page-heading">
+                    <div>
+                        <h1>Community</h1>
+                        <p class="subtle">Communities, shared interests, good conversations.</p>
+                    </div><button class="button button-primary" data-action="new-community">＋ Create community</button>
+                </div><label class="search-box communities-search"><span>⌕</span><input type="search"
+                        placeholder="Search communities by name or topic" aria-label="Search communities"
+                        data-community-search><kbd>/</kbd></label>
+                <div class="feed-tabs community-directory-tabs" role="tablist" aria-label="Community filter"><button
+                        class="feed-tab active" data-community-filter="all">All communities</button><button
+                        class="feed-tab" data-community-filter="joined">Joined</button><button class="feed-tab"
+                        data-community-filter="popular">Popular</button></div>
+                <section class="communities-directory" aria-live="polite">
+                    <div class="community-directory-grid" data-community-directory></div>
+                    <div class="empty-state hidden" data-community-directory-empty><span class="empty-symbol">⌕</span>
+                        <h2>No communities found</h2>
+                        <p>Try another name or topic, or start a community of your own.</p><button
+                            class="button button-secondary" data-action="new-community">Create a community</button>
+                    </div>
+                </section>
+            </section>
+            <div data-community-detail>
+                <div class="page-heading community-page-heading"><a class="back-button" href="community.html"
+                        aria-label="Back to communities">←</a>
+                    <div>
+                        <h1 data-community-name></h1>
+                    </div>
+                </div>
+                <section class="community-hero" data-community-hero>
+                    <div class="community-hero-art" data-community-art></div>
+                    <div class="community-hero-info">
+                        <div class="community-identity">
+                            <div>
+                                <h2 data-community-title></h2>
+                            </div>
+                        </div>
+                        <p class="community-description" data-community-description></p>
+                        <div class="community-meta"><span data-community-members></span><span
+                                data-community-privacy>Open community</span><span>Created by <strong
+                                    data-community-owner></strong></span></div>
+                        <div class="community-hero-actions"><button class="button button-primary"
+                                data-action="community-join">Join community</button><button
+                                class="button button-secondary" data-action="community-share">Share community</button>
+                        </div>
+                    </div>
+                </section>
+                <div class="feed-tabs community-tabs" role="tablist" aria-label="Community posts"><button
+                        class="feed-tab active" data-community-feed="latest">Latest</button><button class="feed-tab"
+                        data-community-feed="popular">Popular</button><button class="feed-tab"
+                        data-community-feed="members">Members</button><button class="feed-tab"
+                        data-community-feed="about">About</button></div>
+                <section class="community-compose" data-community-compose>
+                    <div class="community-compose-prompt"><span class="avatar" data-current-avatar></span><textarea
+                            data-community-post-text rows="2" placeholder="Share something with the community..."
+                            aria-label="Write a community post"></textarea></div>
+                    <div class="community-compose-actions"><label class="community-image-field"><i
+                                class="fa-regular fa-image"></i> Add media <input type="file" accept="image/*,video/*"
+                                data-community-post-image aria-label="Add a photo or video to this post"></label><button
+                            class="button button-primary button-small" data-action="community-post">Post to
+                            community</button></div>
+                    <div class="media-preview" data-community-media-preview hidden></div>
+                    <p class="media-notice" data-community-media-notice role="status"></p>
+                </section>
+                <section class="community-stream" data-community-panel="latest">
+                    <div class="feed-list" data-community-feed-list></div>
+                    <div class="empty-state hidden" data-community-empty><span class="empty-symbol">✳</span>
+                        <h2>Start the conversation</h2>
+                        <p>Share a question, a small win, or something your community might enjoy.</p><button
+                            class="button button-secondary" data-action="community-first-post">Write the first
+                            post</button>
+                    </div>
+                </section>
+                <section class="community-stream hidden" data-community-panel="popular">
+                    <div class="feed-list" data-community-popular-list></div>
+                    <div class="empty-state hidden" data-community-empty-popular><span class="empty-symbol">✳</span>
+                        <h2>Nothing popular yet</h2>
+                        <p>As members share and react, the most-loved posts will show up here.</p>
+                    </div>
+                </section>
+                <section class="community-stream hidden" data-community-panel="members">
+                    <div class="community-panel-heading">
+                        <div>
+                            <h2>Members</h2>
+                        </div><span class="subtle" data-community-member-total></span>
+                    </div>
+                    <div class="community-member-list" data-community-member-list></div>
+                </section>
+                <section class="community-stream hidden" data-community-panel="about">
+                    <div class="community-about-panel">
+                        <h2 data-about-community-title></h2>
+                        <p data-community-about-description></p>
+                        <div class="community-rules">
+                            <h3>Community guidelines</h3>
+                            <ol>
+                                <li>Be welcoming. Assume good intent and make space for different perspectives.</li>
+                                <li>Keep posts relevant to the community and conversations constructive.</li>
+                                <li>No harassment, spam, or sharing another member’s personal information.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </main>
+
+
+
     </div>
 
     <nav class="mobile-nav" aria-label="Mobile navigation"><a href="index.html" aria-label="Home"><i
@@ -55,7 +164,7 @@
                 class="fa-regular fa-bell"></i></a><a href="profile.html" aria-label="Profile"><i
                 class="fa-regular fa-user"></i></a>
     </nav>
-    
+
 </body>
 
 </html>
