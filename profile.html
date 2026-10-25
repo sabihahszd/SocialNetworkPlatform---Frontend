@@ -48,6 +48,69 @@
 
         </aside>
 
+
+        <main class="main-column">
+            <div class="page-heading profile-page-heading"><a class="back-button" href="index.html"
+                    aria-label="Back to home">←</a>
+                <div>
+                    <h1 data-profile-name></h1>
+                    <p class="subtle" data-profile-post-count></p>
+                </div>
+            </div>
+            <div class="profile-cover" role="img" aria-label="Soft green landscape cover"></div>
+            <section class="profile-info">
+                <div class="profile-actions">
+                    <div class="avatar avatar-xl" data-profile-avatar>M</div>
+                    <div class="profile-header-actions"><button class="icon-button" type="button"
+                            data-action="user-options" data-user-name=""
+                            aria-label="Profile options">···</button><button class="button button-secondary"
+                            data-action="edit-profile">Edit profile</button></div>
+                </div>
+                <h2 data-profile-full-name></h2>
+                <p class="profile-handle" data-profile-handle></p>
+                <p class="profile-bio" data-profile-bio></p>
+                <div class="profile-meta"><span data-profile-location></span><span data-profile-joined></span></div>
+                <div class="profile-counts"><button type="button" data-action="show-connections"
+                        data-connection="following" aria-label="Show following"><strong data-following-total></strong>
+                        Following</button><button type="button" data-action="show-connections"
+                        data-connection="followers" aria-label="Show followers"><strong data-followers-total></strong>
+                        Followers</button><button type="button" data-action="show-connections" data-connection="friends"
+                        aria-label="Show friends"><strong data-friends-total></strong> Friends</button></div>
+            </section>
+            <div class="feed-tabs profile-tabs" role="tablist"><button class="feed-tab active"
+                    data-profile-tab="posts">Posts</button><button class="feed-tab"
+                    data-profile-tab="replies">Replies</button><button class="feed-tab"
+                    data-profile-tab="reposts">Reposts</button><button class="feed-tab"
+                    data-profile-tab="likes">Likes</button></div>
+            <section class="profile-content" data-profile-content="posts">
+                <div class="feed-list" data-feed-list></div>
+            </section>
+            <section class="profile-content hidden" data-profile-content="replies">
+                <div class="feed-list" data-profile-feed="replies"></div>
+                <div class="empty-state profile-empty-state hidden" data-profile-empty="replies"><span
+                        class="empty-symbol">◯</span>
+                    <h2>No replies yet</h2>
+                    <p>Posts you have replied to will appear here.</p>
+                </div>
+            </section>
+            <section class="profile-content hidden" data-profile-content="reposts">
+                <div class="feed-list" data-profile-feed="reposts"></div>
+                <div class="empty-state profile-empty-state hidden" data-profile-empty="reposts"><span
+                        class="empty-symbol">↻</span>
+                    <h2>No reposts yet</h2>
+                    <p>Posts you repost will appear here.</p>
+                </div>
+            </section>
+            <section class="profile-content hidden" data-profile-content="likes">
+                <div class="feed-list" data-profile-feed="likes"></div>
+                <div class="empty-state profile-empty-state hidden" data-profile-empty="likes"><span
+                        class="empty-symbol">♡</span>
+                    <h2>No likes yet</h2>
+                    <p>Posts you like will appear here.</p>
+                </div>
+            </section>
+        </main>
+
     </div>
 
 
