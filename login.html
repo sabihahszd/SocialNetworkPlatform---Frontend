@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f8f7">
+    <title>Welcome back — Gather</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/login.css">
+    <script src="assets/js/shared.js" defer></script>
+    <script src="assets/js/login.js" defer></script>
+</head>
+
+<body class="auth-page" data-page="login">
+    <main class="auth-layout"><a class="brand" href="index.html"><span class="brand-mark"></span><span
+                class="brand-word"></span></a>
+        <section class="auth-form-wrap">
+            <h1>Good to see<br>you again.</h1>
+            <p class="auth-intro">A familiar face. A new conversation. Pick up right where you left off.</p>
+            <form class="auth-form" data-auth-form="login"><label class="field-label">Email or username<input
+                        name="identity" required autocomplete="username" placeholder="Email or username"></label><label
+                    class="field-label">Password<input name="password" type="password" required
+                        autocomplete="current-password" placeholder="Your password"></label><button
+                    class="button button-primary button-wide" type="submit">Come on in <span>→</span></button>
+                <p class="auth-notice" data-auth-notice role="status"></p>
+            </form>
+            <p class="auth-switch">New around here? <a href="register.html">Make an account</a></p>
+        </section>
+        <aside class="auth-logo-panel" aria-label="Gather"><span class="auth-logo-mark"></span><span
+                class="auth-logo-wordmark"></span>
+            <p></p>
+        </aside>
+        <footer class="auth-footer"><span data-footer-copy></span></footer>
+    </main>
+</body>
+
+</html>
