@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f8f7">
+    <title>Join Gather — Find your people</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/register.css">
+    <script src="assets/js/shared.js" defer></script>
+    <script src="assets/js/register.js" defer></script>
+</head>
+
+<body class="auth-page" data-page="register">
+    <main class="auth-layout"><a class="brand" href="index.html"><span class="brand-mark"></span><span
+                class="brand-word"></span></a>
+        <section class="auth-form-wrap register-form-wrap">
+            <h1>Your people<br>are out there.</h1>
+            <p class="auth-intro">Create your space. Bring your whole self.</p>
+            <form class="auth-form" data-auth-form="register"><label class="field-label">Full name<input name="fullName"
+                        required maxlength="60" autocomplete="name" placeholder="Your name"></label><label
+                    class="field-label">Email<input name="email" type="email" required autocomplete="email"
+                        placeholder="you@example.com"></label><label class="field-label">Username<input name="username"
+                        required maxlength="24" autocomplete="username"
+                        placeholder="a name your friends know"></label><label class="field-label">Password<input
+                        name="password" type="password" minlength="6" required autocomplete="new-password"
+                        placeholder="At least 6 characters"></label><label class="field-label">A little about
+                    you<textarea name="bio" maxlength="180" rows="2"
+                        placeholder="What are you into? (optional)"></textarea></label><label
+                    class="field-label">Location <span class="optional">optional</span><input name="location"
+                        maxlength="48" autocomplete="address-level2" placeholder="City"></label><label
+                    class="field-label">Profile photo <span class="optional">optional</span><input name="photo"
+                        type="file" accept="image/*" data-avatar-file></label><img class="photo-preview"
+                    data-avatar-preview alt="Profile photo preview" hidden>
+                <p class="photo-notice" data-photo-notice role="status"></p><button
+                    class="button button-primary button-wide" type="submit">Create your account <span>→</span></button>
+                <p class="auth-notice" data-auth-notice role="status"></p>
+            </form>
+            <p class="auth-switch">Already with us? <a href="login.html">Welcome back</a></p>
+        </section>
+        <aside class="auth-logo-panel" aria-label="Gather"><span class="auth-logo-mark"></span><span
+                class="auth-logo-wordmark"></span>
+            <p></p>
+        </aside>
+        <footer class="auth-footer"><span data-footer-copy></span></footer>
+    </main>
+</body>
+
+</html>
