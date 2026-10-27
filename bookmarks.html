@@ -1,23 +1,25 @@
 <!doctype html>
 <html lang="en">
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#f7f8f7">
-    <title>Bookmarks — Gather</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
-        rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
-        crossorigin="anonymous">
-    <link rel="stylesheet" href="assets/css/bookmarks.css">
 
-    <script src="assets/js/shared.js" defer></script>
-    <script src="assets/js/bookmarks.js" defer></script>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8f7">
+  <title>Bookmarks — Gather</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+    crossorigin="anonymous">
+  <link rel="stylesheet" href="assets/css/bookmarks.css">
+
+  <script src="assets/js/shared.js" defer></script>
+  <script src="assets/js/bookmarks.js" defer></script>
 </head>
+
 
 <body data-page="bookmarks">
     <header class="mobile-header"><a class="brand" href="index.html"><span class="brand-mark"></span><span
@@ -68,6 +70,27 @@
             </div>
         </main>
 
+
+        <aside class="right-rail">
+            <label class="search-box"><span>⌕</span><input type="search" placeholder="Search by name or username"
+                    aria-label="Search people and communities" data-search-input><kbd>/</kbd></label>
+            <div class="right-section search-results hidden" data-search-results></div>
+            <section class="right-section request-section">
+                <div class="section-title">
+                    <h2>People to know</h2><a href="explore.html">See all</a>
+                </div>
+                <div data-suggestions></div>
+            </section>
+            <section class="right-section trends-section">
+                <div class="section-title">
+                    <h2>Growing communities</h2><a href="community.html">Explore</a>
+                </div>
+                <div data-trending-circles></div>
+            </section>
+            <footer class="site-footer"><a data-footer-link="about" href="#">About</a><a data-footer-link="guidelines"
+                    href="#">Guidelines</a><a data-footer-link="privacy" href="#">Privacy</a><span
+                    data-footer-copy></span></footer>
+        </aside>
 
 
     </div>
