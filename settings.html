@@ -2,68 +2,171 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f7f8f7">
-  <title>Settings — Gather</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
-    rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
-    crossorigin="anonymous">
-  <link rel="stylesheet" href="assets/css/settings.css">
-  <script src="assets/js/shared.js" defer></script>
-  <script src="assets/js/settings.js" defer></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f8f7">
+    <title>Settings — Gather</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="assets/css/settings.css">
+    <script src="assets/js/shared.js" defer></script>
+    <script src="assets/js/settings.js" defer></script>
 </head>
 
 <body data-page="settings">
-  <header class="mobile-header">
-    <a class="brand" href="index.html"><span class="brand-mark"></span><span class="brand-word"></span></a>
-    <a class="avatar avatar-small" href="profile.html" aria-label="Your profile"></a>
-  </header>
-  <div class="app-shell">
-    <aside class="left-rail">
-      <a class="brand" href="index.html"><span class="brand-mark"></span><span class="brand-word"></span></a>
-      <nav class="primary-nav" aria-label="Main navigation">
-        <a class="nav-link" href="index.html"><span class="nav-icon"><i class="fa-solid fa-house"></i></span>Home</a>
-        <a class="nav-link" href="explore.html"><span class="nav-icon"><i
-              class="fa-brands fa-sistrix"></i></span>Explore</a>
-        <a class="nav-link" href="community.html"><span class="nav-icon"><i
-              class="fa-solid fa-users"></i></span>Community</a>
-        <a class="nav-link" href="chats.html"><span class="nav-icon"><i
-              class="fa-regular fa-comments"></i></span>Chats</a>
-        <a class="nav-link" href="bookmarks.html"><span class="nav-icon"><i
-              class="fa-regular fa-bookmark"></i></span>Bookmarks</a>
-        <a class="nav-link" href="notifications.html"><span class="nav-icon"><i
-              class="fa-regular fa-bell"></i></span>Notifications<span class="nav-badge"
-            data-notification-count></span></a>
-        <a class="nav-link" href="profile.html"><span class="nav-icon"><i
-              class="fa-regular fa-user"></i></span>Profile</a>
-        <a class="nav-link active" href="settings.html"><span class="nav-icon"><i
-              class="fa-solid fa-gear"></i></span>Settings</a>
-      </nav>
-      <div class="rail-divider"></div>
-      <div class="rail-bottom">
-        <div class="mini-profile">
-          <a class="avatar" href="profile.html"></a>
-          <a class="profile-summary" href="profile.html"><strong></strong><span></span></a>
-          <button class="icon-button" data-action="account-menu" aria-label="Account options">···</button>
-        </div>
-        <a class="text-link" href="login.html">Switch account</a>
-      </div>
-    </aside>
+    <header class="mobile-header">
+        <a class="brand" href="index.html"><span class="brand-mark"></span><span class="brand-word"></span></a>
+        <a class="avatar avatar-small" href="profile.html" aria-label="Your profile"></a>
+    </header>
+    <div class="app-shell">
+        <aside class="left-rail">
+            <a class="brand" href="index.html"><span class="brand-mark"></span><span class="brand-word"></span></a>
+            <nav class="primary-nav" aria-label="Main navigation">
+                <a class="nav-link" href="index.html"><span class="nav-icon"><i
+                            class="fa-solid fa-house"></i></span>Home</a>
+                <a class="nav-link" href="explore.html"><span class="nav-icon"><i
+                            class="fa-brands fa-sistrix"></i></span>Explore</a>
+                <a class="nav-link" href="community.html"><span class="nav-icon"><i
+                            class="fa-solid fa-users"></i></span>Community</a>
+                <a class="nav-link" href="chats.html"><span class="nav-icon"><i
+                            class="fa-regular fa-comments"></i></span>Chats</a>
+                <a class="nav-link" href="bookmarks.html"><span class="nav-icon"><i
+                            class="fa-regular fa-bookmark"></i></span>Bookmarks</a>
+                <a class="nav-link" href="notifications.html"><span class="nav-icon"><i
+                            class="fa-regular fa-bell"></i></span>Notifications<span class="nav-badge"
+                        data-notification-count></span></a>
+                <a class="nav-link" href="profile.html"><span class="nav-icon"><i
+                            class="fa-regular fa-user"></i></span>Profile</a>
+                <a class="nav-link active" href="settings.html"><span class="nav-icon"><i
+                            class="fa-solid fa-gear"></i></span>Settings</a>
+            </nav>
+            <div class="rail-divider"></div>
+            <div class="rail-bottom">
+                <div class="mini-profile">
+                    <a class="avatar" href="profile.html"></a>
+                    <a class="profile-summary" href="profile.html"><strong></strong><span></span></a>
+                    <button class="icon-button" data-action="account-menu" aria-label="Account options">···</button>
+                </div>
+                <a class="text-link" href="login.html">Switch account</a>
+            </div>
+        </aside>
 
-  </div>
 
 
-  <nav class="mobile-nav" aria-label="Mobile navigation">
-    <a href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
-    <a href="explore.html" aria-label="Explore"><i class="fa-brands fa-sistrix"></i></a>
-    <a href="notifications.html" aria-label="Notifications"><i class="fa-regular fa-bell"></i></a>
-    <a href="profile.html" aria-label="Profile"><i class="fa-regular fa-user"></i></a>
-  </nav>
+        <main class="main-column">
+            <div class="page-heading settings-heading">
+                <a class="back-button" href="profile.html" aria-label="Back to profile">←</a>
+                <div>
+                    <h1>Settings</h1>
+                </div>
+            </div>
+
+            <div class="settings-layout">
+                <!-- Settings sidebar nav -->
+                <nav class="settings-nav" aria-label="Settings sections">
+                    <button class="settings-nav-item active" data-settings-tab="account">
+                        <span class="settings-nav-icon"><i class="fa-solid fa-user"></i></span>Account
+                    </button>
+                    <button class="settings-nav-item" data-settings-tab="privacy">
+                        <span class="settings-nav-icon"><i class="fa-solid fa-lock"></i></span>Privacy
+                    </button>
+                    <button class="settings-nav-item" data-settings-tab="notifications-pref">
+                        <span class="settings-nav-icon"><i class="fa-solid fa-bell"></i></span>Notifications
+                    </button>
+                    <button class="settings-nav-item" data-settings-tab="appearance">
+                        <span class="settings-nav-icon">◑</span>Appearance
+                    </button>
+                    <div class="settings-nav-divider"></div>
+                    <a class="settings-nav-item settings-nav-danger" href="login.html">
+                        <span class="settings-nav-icon">↩</span>Sign out
+                    </a>
+                </nav>
+
+                <!-- Settings panels -->
+                <div class="settings-panels">
+
+                    <!-- Account -->
+                    <section class="settings-panel" data-settings-panel="account">
+                        <div class="settings-section">
+                            <h2 class="settings-section-title">Your account</h2>
+                            <p class="settings-section-desc">Update your name, username, email, and password.</p>
+                        </div>
+
+                        <form class="settings-form" data-settings-form="account" novalidate>
+                            <div class="settings-group">
+                                <h3 class="settings-group-title">Profile</h3>
+                                <label class="field-label">
+                                    Display name
+                                    <input name="name" type="text" maxlength="48" required autocomplete="name"
+                                        data-settings-name>
+                                </label>
+                                <label class="field-label">
+                                    Username
+                                    <div class="input-prefix-wrap">
+                                        <span class="input-prefix">@</span>
+                                        <input name="username" type="text" maxlength="24" required
+                                            autocomplete="username" data-settings-username>
+                                    </div>
+                                </label>
+                                <label class="field-label">
+                                    Location <span class="optional">optional</span>
+                                    <input name="location" type="text" maxlength="48" autocomplete="address-level2"
+                                        data-settings-location>
+                                </label>
+                            </div>
+
+                            <div class="settings-group">
+                                <h3 class="settings-group-title">Sign-in</h3>
+                                <label class="field-label">
+                                    Email address
+                                    <input name="email" type="email" autocomplete="email" data-settings-email>
+                                </label>
+                                <label class="field-label">
+                                    New password <span class="optional">leave blank to keep current</span>
+                                    <input name="password" type="password" minlength="6" autocomplete="new-password"
+                                        placeholder="At least 6 characters">
+                                </label>
+                                <label class="field-label">
+                                    Confirm new password
+                                    <input name="password-confirm" type="password" autocomplete="new-password"
+                                        placeholder="Repeat new password">
+                                </label>
+                            </div>
+
+                            <div class="settings-actions">
+                                <button class="button button-primary" type="submit">Save account</button>
+                                <p class="settings-notice" data-settings-notice="account" role="status"></p>
+                            </div>
+                        </form>
+
+                        <div class="settings-danger-zone">
+                            <h3 class="settings-group-title">Danger zone</h3>
+                            <p class="settings-section-desc">Deleting your account is permanent and cannot be undone.
+                            </p>
+                            <button class="button button-danger" data-action="delete-account">Delete my account</button>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+
+
+
+
+
+    <nav class="mobile-nav" aria-label="Mobile navigation">
+        <a href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
+        <a href="explore.html" aria-label="Explore"><i class="fa-brands fa-sistrix"></i></a>
+        <a href="notifications.html" aria-label="Notifications"><i class="fa-regular fa-bell"></i></a>
+        <a href="profile.html" aria-label="Profile"><i class="fa-regular fa-user"></i></a>
+    </nav>
 
 
 
