@@ -25,7 +25,7 @@
         <aside class="left-rail"><a class="brand" href="index.html"><span class="brand-mark"></span><span
                     class="brand-word"></span></a>
             <nav class="primary-nav" aria-label="Main navigation"><a class="nav-link" href="index.html"><span
-                        class="nav-icon"><i class="fa-regular fa-house"></i></span>Home</a><a class="nav-link"
+                        class="nav-icon"><i class="fa-solid fa-house"></i></span>Home</a><a class="nav-link"
                     href="explore.html"><span class="nav-icon"><i class="fa-brands fa-sistrix"></i></span>Explore</a><a
                     class="nav-link" href="community.html"><span class="nav-icon"><i
                             class="fa-solid fa-users"></i></span>Community</a><a class="nav-link"
@@ -45,6 +45,47 @@
                         data-action="account-menu" aria-label="Account options">···</button></div><a class="text-link"
                     href="login.html">Switch account</a>
             </div>
+        </aside>
+
+
+        <main class="main-column">
+            <div class="page-heading">
+                <div>
+                    <h1>Notifications</h1>
+                </div><button class="text-button" data-action="mark-read">Mark all read</button>
+            </div>
+            <div class="feed-tabs notification-tabs"><button class="feed-tab active"
+                    data-notification-filter="all">All</button><button class="feed-tab"
+                    data-notification-filter="requests">Requests <span class="count-dot"
+                        data-request-count></span></button><button class="feed-tab"
+                    data-notification-filter="mentions">Mentions</button></div>
+            <div class="notification-list" data-notification-list></div>
+            <div class="empty-state hidden" data-empty-notifications><span class="empty-symbol">✳</span>
+                <h2>All caught up</h2>
+                <p>When your people interact, you’ll find it here.</p>
+            </div>
+        </main>
+
+
+        <aside class="right-rail"><label class="search-box"><span>⌕</span><input type="search"
+                    placeholder="Search by name or username" aria-label="Search people and communities"
+                    data-search-input><kbd>/</kbd></label>
+            <div class="right-section search-results hidden" data-search-results></div>
+            <section class="right-section trends-section">
+                <div class="section-title">
+                    <h2>Your communities</h2><a href="community.html">Explore</a>
+                </div>
+                <div data-trending-circles></div>
+            </section>
+            <section class="community-prompt"><span class="prompt-spark">✳</span>
+                <h2>Good things grow together.</h2>
+                <p>Find your people in a community made for your kind of curious.</p><a class="button button-light"
+                    href="community.html">Explore circles</a>
+            </section>
+            <footer class="site-footer"><a data-footer-link="about" href="#">About</a><a data-footer-link="guidelines"
+                    href="#">Guidelines</a><a data-footer-link="privacy" href="#">Privacy</a><span
+                    data-footer-copy></span>
+            </footer>
         </aside>
 
 
