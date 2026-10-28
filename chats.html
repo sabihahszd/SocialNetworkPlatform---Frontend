@@ -56,6 +56,47 @@
             </div>
         </aside>
 
+
+        <main class="main-column chats-main">
+            <div class="chat-sidebar">
+                <div class="chat-sidebar-heading">
+                    <div>
+                        <h1>Chats</h1>
+                    </div>
+                    <button class="icon-button" data-action="new-chat" aria-label="Start a new chat">＋</button>
+                </div>
+                <label class="search-box chat-search"><span>⌕</span><input type="search"
+                        placeholder="Search conversations" aria-label="Search conversations" data-chat-search></label>
+                <div class="chat-list" data-chat-list></div>
+            </div>
+            <section class="chat-thread" data-chat-thread>
+                <header class="chat-thread-header"><button class="icon-button chat-back" type="button"
+                        data-action="chat-back" aria-label="Back to conversations">←</button><span
+                        class="avatar"></span>
+                    <div><strong></strong><span></span></div>
+                </header>
+                <div class="chat-message-list" data-chat-message-list></div>
+                <form class="chat-compose" data-chat-form><textarea name="message" rows="1" maxlength="1000"
+                        placeholder="Write a message..." aria-label="Write a message" required></textarea><button
+                        class="button button-primary" type="submit">Send</button></form>
+            </section>
+        </main>
+
+
+        <aside class="right-rail">
+            <label class="search-box"><span>⌕</span><input type="search" placeholder="Search by name or username"
+                    aria-label="Search people and communities" data-search-input><kbd>/</kbd></label>
+            <div class="right-section search-results hidden" data-search-results></div>
+            <section class="community-prompt"><span class="prompt-spark">✳</span>
+                <h2>A little note goes a long way.</h2>
+                <p>Keep the good conversations going, one message at a time.</p><a class="button button-light"
+                    href="community.html">Find your people</a>
+            </section>
+            <footer class="site-footer"><a data-footer-link="about" href="#">About</a><a data-footer-link="guidelines"
+                    href="#">Guidelines</a><a data-footer-link="privacy" href="#">Privacy</a><span
+                    data-footer-copy></span></footer>
+        </aside>
+
     </div>
 
 
