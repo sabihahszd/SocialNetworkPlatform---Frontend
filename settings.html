@@ -304,9 +304,76 @@
                     </section>
 
 
+                    <!-- Appearance -->
+                    <section class="settings-panel hidden" data-settings-panel="appearance">
+                        <div class="settings-section">
+                            <h2 class="settings-section-title">Appearance</h2>
+                            <p class="settings-section-desc">Make Gather feel like yours.</p>
+                        </div>
+
+                        <form class="settings-form" data-settings-form="appearance" novalidate>
+                            <div class="settings-group">
+                                <h3 class="settings-group-title">Theme</h3>
+                                <div class="theme-grid" role="group" aria-label="Choose a theme">
+                                    <label class="theme-option">
+                                        <input type="radio" name="theme" value="system" data-settings-theme checked>
+                                        <span class="theme-preview theme-system">
+                                            <span class="theme-preview-half light"></span>
+                                            <span class="theme-preview-half dark"></span>
+                                        </span>
+                                        <span>System</span>
+                                    </label>
+                                    <label class="theme-option">
+                                        <input type="radio" name="theme" value="light" data-settings-theme>
+                                        <span class="theme-preview theme-light"></span>
+                                        <span>Light</span>
+                                    </label>
+                                    <label class="theme-option">
+                                        <input type="radio" name="theme" value="dark" data-settings-theme>
+                                        <span class="theme-preview theme-dark"></span>
+                                        <span>Dark</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="settings-group">
+                                <h3 class="settings-group-title">Feed</h3>
+                                <label class="settings-toggle-row">
+                                    <div class="settings-row-info">
+                                        <strong>Reduce motion</strong>
+                                        <span>Minimise animations throughout the app.</span>
+                                    </div>
+                                    <label class="toggle" aria-label="Reduce motion">
+                                        <input type="checkbox" name="reduce-motion" data-settings-reduce-motion>
+                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    </label>
+                                </label>
+                                <label class="settings-toggle-row">
+                                    <div class="settings-row-info">
+                                        <strong>Autoplay media</strong>
+                                        <span>Play videos as they scroll into view.</span>
+                                    </div>
+                                    <label class="toggle" aria-label="Autoplay media">
+                                        <input type="checkbox" name="autoplay" data-settings-autoplay checked>
+                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    </label>
+                                </label>
+                            </div>
+
+                            <div class="settings-actions">
+                                <button class="button button-primary" type="submit">Save appearance</button>
+                                <p class="settings-notice" data-settings-notice="appearance" role="status"></p>
+                            </div>
+                        </form>
+                    </section>
+
+
                 </div>
             </div>
         </main>
+
+
+
     </div>
 
 
