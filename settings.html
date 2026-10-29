@@ -151,6 +151,81 @@
                             <button class="button button-danger" data-action="delete-account">Delete my account</button>
                         </div>
                     </section>
+
+
+                    <!-- Privacy -->
+                    <section class="settings-panel hidden" data-settings-panel="privacy">
+                        <div class="settings-section">
+                            <h2 class="settings-section-title">Privacy &amp; visibility</h2>
+                            <p class="settings-section-desc">Control who can see your posts and interact with you.</p>
+                        </div>
+
+                        <form class="settings-form" data-settings-form="privacy" novalidate>
+                            <div class="settings-group">
+                                <h3 class="settings-group-title">Post defaults</h3>
+                                <label class="settings-row">
+                                    <div class="settings-row-info">
+                                        <strong>Default post audience</strong>
+                                        <span>Who sees your posts unless you choose otherwise.</span>
+                                    </div>
+                                    <select name="default-privacy" data-settings-default-privacy>
+                                        <option value="public">Everyone</option>
+                                        <option value="communities">My communities only</option>
+                                        <option value="friends">Friends only</option>
+                                    </select>
+                                </label>
+                            </div>
+
+                            <div class="settings-group">
+                                <h3 class="settings-group-title">Interactions</h3>
+                                <label class="settings-toggle-row">
+                                    <div class="settings-row-info">
+                                        <strong>Allow friend requests</strong>
+                                        <span>Let people send you friend requests.</span>
+                                    </div>
+                                    <label class="toggle" aria-label="Allow friend requests">
+                                        <input type="checkbox" name="allow-requests" data-settings-allow-requests
+                                            checked>
+                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    </label>
+                                </label>
+                                <label class="settings-toggle-row">
+                                    <div class="settings-row-info">
+                                        <strong>Show in people suggestions</strong>
+                                        <span>Let others discover your profile.</span>
+                                    </div>
+                                    <label class="toggle" aria-label="Show in suggestions">
+                                        <input type="checkbox" name="show-suggestions" data-settings-show-suggestions
+                                            checked>
+                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    </label>
+                                </label>
+                                <label class="settings-toggle-row">
+                                    <div class="settings-row-info">
+                                        <strong>Allow direct messages</strong>
+                                        <span>Let people start conversations with you.</span>
+                                    </div>
+                                    <label class="toggle" aria-label="Allow direct messages">
+                                        <input type="checkbox" name="allow-dms" data-settings-allow-dms checked>
+                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    </label>
+                                </label>
+                            </div>
+
+                            <div class="settings-group">
+                                <h3 class="settings-group-title">Blocked accounts</h3>
+                                <p class="settings-section-desc" data-blocked-empty>You have not blocked anyone.</p>
+                                <ul class="blocked-list" data-blocked-list></ul>
+                            </div>
+
+                            <div class="settings-actions">
+                                <button class="button button-primary" type="submit">Save privacy</button>
+                                <p class="settings-notice" data-settings-notice="privacy" role="status"></p>
+                            </div>
+                        </form>
+                    </section>
+
+
                 </div>
             </div>
         </main>
