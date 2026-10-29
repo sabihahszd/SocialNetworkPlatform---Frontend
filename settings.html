@@ -226,6 +226,84 @@
                     </section>
 
 
+                    <!-- Notifications preferences -->
+                    <section class="settings-panel hidden" data-settings-panel="notifications-pref">
+                        <div class="settings-section">
+                            <h2 class="settings-section-title">Notification preferences</h2>
+                            <p class="settings-section-desc">Choose what you want to hear about.</p>
+                        </div>
+
+                        <form class="settings-form" data-settings-form="notifications-pref" novalidate>
+                            <div class="settings-group">
+                                <h3 class="settings-group-title">Activity</h3>
+                                <label class="settings-toggle-row">
+                                    <div class="settings-row-info">
+                                        <strong>Likes on my posts</strong>
+                                        <span>When someone likes something you shared.</span>
+                                    </div>
+                                    <label class="toggle" aria-label="Likes notifications">
+                                        <input type="checkbox" name="notify-likes" data-settings-notify-likes checked>
+                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    </label>
+                                </label>
+                                <label class="settings-toggle-row">
+                                    <div class="settings-row-info">
+                                        <strong>Replies to my posts</strong>
+                                        <span>When someone replies to a post of yours.</span>
+                                    </div>
+                                    <label class="toggle" aria-label="Replies notifications">
+                                        <input type="checkbox" name="notify-replies" data-settings-notify-replies
+                                            checked>
+                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    </label>
+                                </label>
+                                <label class="settings-toggle-row">
+                                    <div class="settings-row-info">
+                                        <strong>Reposts</strong>
+                                        <span>When someone reposts your content.</span>
+                                    </div>
+                                    <label class="toggle" aria-label="Reposts notifications">
+                                        <input type="checkbox" name="notify-reposts" data-settings-notify-reposts
+                                            checked>
+                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    </label>
+                                </label>
+                            </div>
+
+                            <div class="settings-group">
+                                <h3 class="settings-group-title">People</h3>
+                                <label class="settings-toggle-row">
+                                    <div class="settings-row-info">
+                                        <strong>Friend requests</strong>
+                                        <span>When someone wants to connect with you.</span>
+                                    </div>
+                                    <label class="toggle" aria-label="Friend request notifications">
+                                        <input type="checkbox" name="notify-requests" data-settings-notify-requests
+                                            checked>
+                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    </label>
+                                </label>
+                                <label class="settings-toggle-row">
+                                    <div class="settings-row-info">
+                                        <strong>Community activity</strong>
+                                        <span>New posts in communities you have joined.</span>
+                                    </div>
+                                    <label class="toggle" aria-label="Community notifications">
+                                        <input type="checkbox" name="notify-communities"
+                                            data-settings-notify-communities checked>
+                                        <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                                    </label>
+                                </label>
+                            </div>
+
+                            <div class="settings-actions">
+                                <button class="button button-primary" type="submit">Save preferences</button>
+                                <p class="settings-notice" data-settings-notice="notifications-pref" role="status"></p>
+                            </div>
+                        </form>
+                    </section>
+
+
                 </div>
             </div>
         </main>
