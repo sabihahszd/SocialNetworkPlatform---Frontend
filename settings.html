@@ -405,9 +405,6 @@
 
 
 
-
-
-
     <nav class="mobile-nav" aria-label="Mobile navigation">
         <a href="index.html" aria-label="Home"><i class="fa-solid fa-house"></i></a>
         <a href="explore.html" aria-label="Explore"><i class="fa-brands fa-sistrix"></i></a>
@@ -415,6 +412,21 @@
         <a href="profile.html" aria-label="Profile"><i class="fa-regular fa-user"></i></a>
     </nav>
 
+
+
+    <!-- Delete account confirmation dialog -->
+    <dialog class="modal" data-delete-modal>
+        <div class="modal-content">
+            <button class="modal-close" type="button" data-action="close-delete-modal" aria-label="Close">×</button>
+            <h2>Delete your account?</h2>
+            <p class="modal-copy">This removes all your posts, communities, and connections. It cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="button button-danger" data-action="confirm-delete-account">Yes, delete
+                    everything</button>
+                <button class="button button-secondary" type="button" data-action="close-delete-modal">Cancel</button>
+            </div>
+        </div>
+    </dialog>
 
 
 
