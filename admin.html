@@ -56,6 +56,146 @@
             </div>
         </aside>
 
+
+        <main class="main-column">
+            <section class="admin-denied" data-admin-denied>
+                <div class="empty-state">
+                    <span class="empty-symbol"><i class="fa-solid fa-shield-halved"></i></span>
+                    <h2>Admin access only</h2>
+                    <p>This console is available to the superadmin and admins.</p>
+                    <a class="button button-secondary" href="index.html">Back home</a>
+                </div>
+            </section>
+            <div class="hidden" data-admin-console>
+                <div class="page-heading admin-heading">
+                    <div>
+                        <h1>Admin console</h1>
+                        <p class="subtle">Logo, members, reports, communities, and posts.</p>
+                    </div>
+                    <span class="admin-status"><i></i> Admin access</span>
+                </div>
+                <section class="admin-metrics" aria-label="Platform overview">
+                    <div class="admin-metric"><span>Members</span><strong
+                            data-admin-count="members">0</strong><small>accounts</small></div>
+                    <div class="admin-metric"><span>Posts</span><strong data-admin-count="posts">0</strong><small>shared
+                            posts</small></div>
+                    <div class="admin-metric"><span>Needs review</span><strong
+                            data-admin-count="reports">0</strong><small>open reports</small></div>
+                    <div class="admin-metric"><span>Communities</span><strong
+                            data-admin-count="circles">0</strong><small>community spaces</small></div>
+                </section>
+                <div class="feed-tabs admin-tabs" role="tablist" aria-label="Admin sections">
+                    <button class="feed-tab active" data-admin-tab="overview">Overview</button>
+                    <button class="feed-tab" data-admin-tab="reports">Reports <span class="count-dot hidden"
+                            data-admin-report-badge>0</span></button>
+                    <button class="feed-tab" data-admin-tab="members">Members</button>
+                    <button class="feed-tab" data-admin-tab="communities">Communities</button>
+                    <button class="feed-tab" data-admin-tab="posts">Posts</button>
+                    <button class="feed-tab" data-admin-tab="brand">Brand</button>
+                </div>
+                <section class="admin-view" data-admin-view="overview">
+                    <div class="admin-section-heading">
+                        <div>
+                            <h2>Needs a closer look</h2>
+                        </div>
+                        <button class="text-button" data-action="admin-open-reports">View all reports →</button>
+                    </div>
+                    <div data-admin-overview-reports></div>
+                    <section class="admin-note"><span>✳</span>
+                        <div><strong>Lead with care.</strong>
+                            <p>Review context before taking action. Reports stay private and are only visible here.</p>
+                        </div>
+                    </section>
+                </section>
+                <section class="admin-view hidden" data-admin-view="reports">
+                    <div class="admin-section-heading">
+                        <div>
+                            <h2>Reported posts</h2>
+                        </div>
+                        <span class="admin-view-count" data-admin-report-total>0 open</span>
+                    </div>
+                    <div data-admin-reports></div>
+                    <div class="empty-state" data-admin-empty-reports><span class="empty-symbol">✓</span>
+                        <h2>Nothing waiting</h2>
+                        <p>Every report has been reviewed.</p>
+                    </div>
+                </section>
+                <section class="admin-view hidden" data-admin-view="members">
+                    <div class="admin-section-heading">
+                        <div>
+                            <h2>Member directory</h2>
+                        </div>
+                        <label class="admin-search"><span>⌕</span><input type="search" placeholder="Find a member"
+                                aria-label="Search members" data-admin-user-search></label>
+                    </div>
+                    <div class="admin-member-list" data-admin-members></div>
+                    <p class="empty-hint hidden" data-admin-empty-members>No members match that search.</p>
+                </section>
+                <section class="admin-view hidden" data-admin-view="communities">
+                    <div class="admin-section-heading">
+                        <div>
+                            <h2>Communities</h2>
+                        </div>
+                        <label class="admin-search"><span>⌕</span><input type="search" placeholder="Find a community"
+                                aria-label="Search communities" data-admin-community-search></label>
+                    </div>
+                    <div data-admin-communities></div>
+                    <p class="empty-hint" data-admin-empty-communities>No communities yet.</p>
+                    <form class="admin-editor" data-community-editor hidden>
+                        <h2>Edit community</h2>
+                        <label class="field-label">Name<input data-community-name maxlength="80" required></label>
+                        <label class="field-label">Description<textarea data-community-description maxlength="240"
+                                rows="3"></textarea></label>
+                        <label class="field-label">Emoji<input data-community-emoji maxlength="8"></label>
+                        <label class="field-label">Color<input data-community-color maxlength="20"></label>
+                        <button class="button button-primary" type="submit">Save community</button>
+                    </form>
+                </section>
+                <section class="admin-view hidden" data-admin-view="posts">
+                    <div class="admin-section-heading">
+                        <div>
+                            <h2>Posts</h2>
+                        </div>
+                        <label class="admin-search"><span>⌕</span><input type="search" placeholder="Find a post"
+                                aria-label="Search posts" data-admin-post-search></label>
+                    </div>
+                    <div data-admin-posts></div>
+                    <p class="empty-hint" data-admin-empty-posts>No posts yet.</p>
+                </section>
+                <section class="admin-view hidden" data-admin-view="brand">
+                    <div class="admin-section-heading">
+                        <div>
+                            <h2>Site brand</h2>
+                            <p class="subtle">Name, logo, and the pages linked in the footer.</p>
+                        </div>
+                    </div>
+                    <form class="admin-brand-form" data-brand-form>
+                        <label class="field-label">Site name<input name="siteName" data-brand-name maxlength="40"
+                                required></label>
+                        <label class="field-label">Tagline<input name="tagline" data-brand-tagline
+                                maxlength="120"></label>
+                        <label class="field-label">Logo letter<input name="logoMark" data-brand-mark
+                                maxlength="2"></label>
+                        <label class="field-label">Footer note<input name="footerNote" data-brand-footer
+                                maxlength="160"></label>
+                        <label class="field-label">Logo image<input type="file" accept="image/*"
+                                data-brand-logo></label>
+                        <img class="banner-photo-preview" data-brand-preview alt="Logo preview" hidden>
+                        <label class="field-label">About<textarea data-brand-about rows="4"
+                                maxlength="2000"></textarea></label>
+                        <label class="field-label">Guidelines<textarea data-brand-guidelines rows="4"
+                                maxlength="2000"></textarea></label>
+                        <label class="field-label">Privacy<textarea data-brand-privacy rows="4"
+                                maxlength="2000"></textarea></label>
+                        <p class="photo-notice" data-brand-notice role="status"></p>
+                        <button class="button button-primary" type="submit">Save brand</button>
+                    </form>
+                </section>
+            </div>
+        </main>
+
+
+
     </div>
 
     <nav class="mobile-nav" aria-label="Mobile navigation">
