@@ -236,12 +236,14 @@
         communityLink.className = 'community-mobile-link';
         communityLink.href = 'community.html';
         communityLink.setAttribute('aria-label', 'Community');
-        communityLink.textContent = '◎';
+        communityLink.innerHTML = '<i class="fa-solid fa-users"></i>';
         const notificationsLink = nav.querySelector('a[href="notifications.html"]');
         if (notificationsLink) notificationsLink.before(communityLink);
         else nav.append(communityLink);
       }
       communityLink.classList.add('community-mobile-link');
+      communityLink.setAttribute('aria-label', 'Community');
+      communityLink.innerHTML = '<i class="fa-solid fa-users"></i>';
       communityLink.classList.toggle('active', page === 'community');
 
       const ensureMobileLink = (href, className, icon, label, active) => {
@@ -250,17 +252,17 @@
           item = document.createElement('a');
           item.className = className;
           item.href = href;
-          item.setAttribute('aria-label', label);
-          item.textContent = icon;
           const anchor = nav.querySelector('a[href="chats.html"]') || nav.querySelector('a[href="community.html"]');
           if (anchor) anchor.after(item);
           else nav.append(item);
         }
         item.classList.add(className);
+        item.setAttribute('aria-label', label);
+        item.innerHTML = icon;
         item.classList.toggle('active', active);
       };
-      ensureMobileLink('chats.html', 'chats-mobile-link', '▤', 'Chats', page === 'chats');
-      ensureMobileLink('bookmarks.html', 'bookmarks-mobile-link', '▱', 'Bookmarks', page === 'bookmarks');
+      ensureMobileLink('chats.html', 'chats-mobile-link', '<i class="fa-regular fa-comments"></i>', 'Chats', page === 'chats');
+      ensureMobileLink('bookmarks.html', 'bookmarks-mobile-link', '<i class="fa-regular fa-bookmark"></i>', 'Bookmarks', page === 'bookmarks');
 
       let adminLink = nav.querySelector('.admin-mobile-link');
       if (!isAdmin()) adminLink?.remove();
