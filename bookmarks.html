@@ -16,20 +16,26 @@
     crossorigin="anonymous">
   <link rel="stylesheet" href="assets/css/bookmarks.css">
 
-  <script src="assets/js/shared.js" defer></script>
   <script src="assets/js/bookmarks.js" defer></script>
 </head>
 
 
 <body data-page="bookmarks">
-    <header class="mobile-header"><a class="brand" href="index.html"><span class="brand-mark"></span><span
-                class="brand-word"></span></a><a class="avatar avatar-small" href="profile.html"
-            aria-label="Your profile"></a></header>
+    <header class="mobile-header"><a class="brand" href="home.html"><span class="brand-mark"></span><span
+                class="brand-word"></span></a><button class="icon-button" type="button" data-action="toggle-account-nav" aria-expanded="false" aria-controls="mobile-account-nav" aria-label="Account menu"><i class="fa-solid fa-ellipsis"></i></button></header>
+    <div class="mobile-account">
+        <button class="mobile-account-backdrop" type="button" data-action="close-account-nav" aria-label="Close account menu"></button>
+        <nav class="mobile-account-nav" id="mobile-account-nav" aria-label="Account">
+            <p class="rail-heading">Account</p>
+            <a class="nav-link" href="profile.html"><span class="nav-icon"><i class="fa-regular fa-user"></i></span>Profile</a>
+            <a class="nav-link" href="settings.html"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span>Settings</a>
+        </nav>
+    </div>
     <div class="app-shell">
         <aside class="left-rail">
-            <a class="brand" href="index.html"><span class="brand-mark"></span><span class="brand-word"></span></a>
+            <a class="brand" href="home.html"><span class="brand-mark"></span><span class="brand-word"></span></a>
             <nav class="primary-nav" aria-label="Main navigation">
-                <a class="nav-link" href="index.html"><span class="nav-icon"><i
+                <a class="nav-link" href="home.html"><span class="nav-icon"><i
                             class="fa-solid fa-house"></i></span>Home</a>
                 <a class="nav-link" href="explore.html"><span class="nav-icon"><i
                             class="fa-brands fa-sistrix"></i></span>Explore</a>
@@ -66,7 +72,7 @@
             <div class="empty-state hidden" data-empty-feed><span class="empty-symbol">▱</span>
                 <h2>No bookmarks yet</h2>
                 <p>Save a post to keep it close for later.</p><a class="button button-secondary"
-                    href="index.html">Browse your feed</a>
+                    href="home.html">Browse your feed</a>
             </div>
         </main>
 
@@ -95,11 +101,10 @@
 
     </div>
 
-    <nav class="mobile-nav" aria-label="Mobile navigation"><a href="index.html" aria-label="Home"><i
+    <nav class="mobile-nav" aria-label="Mobile navigation"><a href="home.html" aria-label="Home"><i
                 class="fa-solid fa-house"></i></a><a href="explore.html" aria-label="Explore"><i
                 class="fa-brands fa-sistrix"></i></a><a href="notifications.html" aria-label="Notifications"><i
-                class="fa-regular fa-bell"></i></a><a href="profile.html" aria-label="Profile"><i
-                class="fa-regular fa-user"></i></a></nav>
+                class="fa-regular fa-bell"></i></a></nav>
 </body>
 
 </html>

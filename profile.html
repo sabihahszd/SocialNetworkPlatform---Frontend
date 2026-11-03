@@ -14,17 +14,24 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
         crossorigin="anonymous">
     <link rel="stylesheet" href="assets/css/profile.css">
-    <script src="assets/js/shared.js" defer></script>
     <script src="assets/js/profile.js" defer></script>
 </head>
 
 <body data-page="profile">
-    <header class="mobile-header"><a class="brand" href="index.html"><span class="brand-mark"></span><span
-                class="brand-word"></span></a><a class="avatar avatar-small" href="profile.html"></a></header>
+    <header class="mobile-header"><a class="brand" href="home.html"><span class="brand-mark"></span><span
+                class="brand-word"></span></a><button class="icon-button" type="button" data-action="toggle-account-nav" aria-expanded="false" aria-controls="mobile-account-nav" aria-label="Account menu"><i class="fa-solid fa-ellipsis"></i></button></header>
+    <div class="mobile-account">
+        <button class="mobile-account-backdrop" type="button" data-action="close-account-nav" aria-label="Close account menu"></button>
+        <nav class="mobile-account-nav" id="mobile-account-nav" aria-label="Account">
+            <p class="rail-heading">Account</p>
+            <a class="nav-link active" href="profile.html"><span class="nav-icon"><i class="fa-regular fa-user"></i></span>Profile</a>
+            <a class="nav-link" href="settings.html"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span>Settings</a>
+        </nav>
+    </div>
     <div class="app-shell">
-        <aside class="left-rail"><a class="brand" href="index.html"><span class="brand-mark"></span><span
+        <aside class="left-rail"><a class="brand" href="home.html"><span class="brand-mark"></span><span
                     class="brand-word"></span></a>
-            <nav class="primary-nav" aria-label="Main navigation"><a class="nav-link" href="index.html"><span
+            <nav class="primary-nav" aria-label="Main navigation"><a class="nav-link" href="home.html"><span
                         class="nav-icon"><i class="fa-solid fa-house"></i></span>Home</a><a class="nav-link"
                     href="explore.html"><span class="nav-icon"><i class="fa-brands fa-sistrix"></i></span>Explore</a><a
                     class="nav-link" href="community.html"><span class="nav-icon"><i
@@ -50,7 +57,7 @@
 
 
         <main class="main-column">
-            <div class="page-heading profile-page-heading"><a class="back-button" href="index.html"
+            <div class="page-heading profile-page-heading"><a class="back-button" href="home.html"
                     aria-label="Back to home">←</a>
                 <div>
                     <h1 data-profile-name></h1>
@@ -138,11 +145,10 @@
     </div>
 
 
-    <nav class="mobile-nav" aria-label="Mobile navigation"><a href="index.html" aria-label="Home"><i
+    <nav class="mobile-nav" aria-label="Mobile navigation"><a href="home.html" aria-label="Home"><i
                 class="fa-solid fa-house"></i></a><a href="explore.html" aria-label="Explore"><i
                 class="fa-brands fa-sistrix"></i></a><a href="notifications.html" aria-label="Notifications"><i
-                class="fa-regular fa-bell"></i></a><a class="active" href="profile.html" aria-label="Profile"><i
-                class="fa-regular fa-user"></i></a>
+                class="fa-regular fa-bell"></i></a>
     </nav>
 
 

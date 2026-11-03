@@ -230,6 +230,7 @@
     });
 
     document.querySelectorAll('.mobile-nav').forEach(nav => {
+      nav.querySelectorAll('a[href="profile.html"]').forEach(link => link.remove());
       let communityLink = nav.querySelector('.community-mobile-link, a[href="community.html"]');
       if (!communityLink) {
         communityLink = document.createElement('a');
@@ -278,12 +279,17 @@
         adminLink.classList.toggle('active', page === 'admin');
       }
     });
+
+    document.querySelectorAll('.mobile-account-nav').forEach(nav => {
+      nav.querySelector('a[href="profile.html"]')?.classList.toggle('active', page === 'profile');
+      nav.querySelector('a[href="settings.html"]')?.classList.toggle('active', page === 'settings');
+    });
   }
 
   function renderIdentity() {
     const user = currentUser();
     if (!user) return;
-    document.querySelectorAll('.mini-profile .avatar, .mobile-header .avatar, .composer > .avatar').forEach(node => {
+    document.querySelectorAll('.mini-profile .avatar, .composer > .avatar').forEach(node => {
       node.innerHTML = user.photo ? `<img src="${escapeHTML(safePhoto(user.photo))}" alt="">` : escapeHTML(user.name.slice(0, 1).toUpperCase());
       node.setAttribute('aria-label', user.name);
     });
@@ -370,7 +376,7 @@
     const actions = readOnly ? '' : `<div class="post-actions"><button class="post-action${liked ? ' liked' : ''}" type="button" data-action="toggle-like" aria-label="${liked ? 'Unlike' : 'Like'} post"><i class="${liked ? 'fa-solid' : 'fa-regular'} fa-heart"></i><span class="action-count">${likes.length}</span></button><button class="post-action${reposted ? ' reposted' : ''}" type="button" data-action="toggle-repost" aria-label="${reposted ? 'Undo repost' : 'Repost'}"><i class="fa-solid fa-retweet"></i><span class="action-count">${reposts.length}</span></button><button class="post-action" type="button" data-action="open-post" data-post-id="${escapeHTML(post.id)}" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">${comments.length}</span></button><button class="post-action${bookmarked ? ' bookmarked' : ''}" type="button" data-action="toggle-bookmark" aria-label="${bookmarked ? 'Unsave post' : 'Save post'}"><i class="${bookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i><span class="action-count">${bookmarks.length}</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share post"><i class="fa-solid fa-share-nodes"></i></button></div>`;
     const commentForm = readOnly ? '' : '<form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form>';
     const audience = post.privacy === 'communities' ? 'Communities' : post.privacy === 'friends' ? 'Friends' : 'Everyone';
-    return `<article class="post-card" data-post-id="${escapeHTML(post.id)}"><div class="post-header"><a href="profile.html" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context"><span class="context-icon">${post.privacy === 'public' ? '✳' : '◎'}</span>${audience} · ${prettyTime(post.createdAt)} <a class="post-open-link" href="index.html?post=${encodeURIComponent(post.id)}">View post</a></span></div><button class="icon-button post-menu" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${escapeHTML(post.text)}</p>${video ? `<video class="post-image" src="${video}" controls preload="metadata" aria-label="Video shared by ${escapeHTML(author.name)}"></video>` : image ? `<img class="post-image" src="${image}" alt="Photo shared by ${escapeHTML(author.name)}" loading="lazy">` : ''}${actions}${comments.length ? `<div class="comment-list">${comments.map(comment => renderComment(comment, post.id)).join('')}</div>` : ''}${commentForm}</article>`;
+    return `<article class="post-card" data-post-id="${escapeHTML(post.id)}"><div class="post-header"><a href="profile.html" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context"><span class="context-icon">${post.privacy === 'public' ? '✳' : '◎'}</span>${audience} · ${prettyTime(post.createdAt)} <a class="post-open-link" href="home.html?post=${encodeURIComponent(post.id)}">View post</a></span></div><button class="icon-button post-menu" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${escapeHTML(post.text)}</p>${video ? `<video class="post-image" src="${video}" controls preload="metadata" aria-label="Video shared by ${escapeHTML(author.name)}"></video>` : image ? `<img class="post-image" src="${image}" alt="Photo shared by ${escapeHTML(author.name)}" loading="lazy">` : ''}${actions}${comments.length ? `<div class="comment-list">${comments.map(comment => renderComment(comment, post.id)).join('')}</div>` : ''}${commentForm}</article>`;
   }
 
   function ensurePostActionStyles() {
@@ -577,7 +583,7 @@
         const id = element.dataset.postId || card?.dataset.postId;
         if (!id) return true;
         if (card) sessionStorage.setItem(`gather.post.${id}`, card.outerHTML);
-        window.location.href = `index.html?post=${encodeURIComponent(id)}`;
+        window.location.href = `home.html?post=${encodeURIComponent(id)}`;
         return true;
       }
       case 'focus-comment':
@@ -626,7 +632,7 @@
         dialog.dataset.postId = id;
         const copy = dialog.querySelector('.modal-copy');
         if (copy) copy.textContent = 'Send it to a friend or group, or share the link.';
-        const url = new URL(`index.html?post=${encodeURIComponent(id)}`, window.location.href).href;
+        const url = new URL(`home.html?post=${encodeURIComponent(id)}`, window.location.href).href;
         const encodedUrl = encodeURIComponent(url);
         const chatIds = new Set(state.chats.map(thread => thread.participantId));
         const shareTargets = [
@@ -783,6 +789,16 @@
         form.reset();
         return true;
       }
+      case 'toggle-account-nav': {
+        const panel = document.querySelector('.mobile-account');
+        const open = !!panel?.classList.toggle('is-open');
+        element.setAttribute('aria-expanded', open ? 'true' : 'false');
+        return true;
+      }
+      case 'close-account-nav':
+        document.querySelector('.mobile-account')?.classList.remove('is-open');
+        document.querySelector('[data-action="toggle-account-nav"]')?.setAttribute('aria-expanded', 'false');
+        return true;
       case 'account-menu':
         api.clear();
         window.location.href = 'login.html';
@@ -860,6 +876,10 @@
       });
     });
     document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        document.querySelector('.mobile-account')?.classList.remove('is-open');
+        document.querySelector('[data-action="toggle-account-nav"]')?.setAttribute('aria-expanded', 'false');
+      }
       if (event.key === '/' && !['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName || '')) {
         event.preventDefault();
         document.querySelector('[data-search-input]')?.focus();
@@ -872,7 +892,7 @@
       if (card?.dataset.postId && !card.closest('[data-home-post-detail]') && (openLink || (!actionElement && !event.target.closest('a, input, textarea, button, label')))) {
         sessionStorage.setItem(`gather.post.${card.dataset.postId}`, card.outerHTML);
         if (!openLink && !actionElement) {
-          window.location.href = `index.html?post=${encodeURIComponent(card.dataset.postId)}`;
+          window.location.href = `home.html?post=${encodeURIComponent(card.dataset.postId)}`;
           return;
         }
       }
