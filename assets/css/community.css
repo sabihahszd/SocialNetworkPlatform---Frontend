@@ -2671,27 +2671,22 @@ body[data-page='community'] .community-main {
 }
 
 .community-image-field {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-    gap: 7px;
+    position: relative;
     color: var(--forest);
-    font-size: 15px;
-}
-
-.community-image-field {
-    max-width: 100%;
-    overflow: hidden;
-    padding: 5px 8px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    font-size: 10px;
+    font-size: 17px;
+    cursor: pointer;
 }
 
 .community-image-field input[type='file'] {
-    width: min(245px, 48vw);
-    min-width: 0;
-    font-size: 12px;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+    white-space: nowrap;
 }
 
 .community-compose .media-preview {
