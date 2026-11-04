@@ -954,7 +954,8 @@
     readPhotoFile,
     readMediaFile,
     clearMediaInput,
-    applyBranding
+    applyBranding,
+    renderShell
   };
 })();
 
@@ -968,11 +969,18 @@ function render() {
     container.innerHTML = notifications.map(item => {
       const actor = Gather.userById(item.actorId);
       const pending = item.type === 'friend-request' && item.status === 'pending';
-      const label = item.type === 'friend-request' ? 'sent you a friend request.' : item.type === 'like' ? 'liked your post.' : 'replied to your post.';
+      const labels = {
+        'friend-request': 'sent you a friend request.',
+        like: 'liked your post.',
+        comment: 'replied to your post.',
+        repost: 'reposted your post.',
+        community: 'joined your community.'
+      };
+      const label = labels[item.type] || 'sent you a notification.';
       const icon = item.type === 'friend-request' ? '＋' : item.type === 'like' ? '♥' : '↩';
       const detail = item.detail ? `<span class="notification-detail">"${Gather.escapeHTML(item.detail)}"</span>` : '';
       const actions = pending ? `<div class="notification-actions"><button class="button button-primary" data-action="accept-request" data-notification-id="${Gather.escapeHTML(item.id)}">Accept</button><button class="button button-secondary" data-action="decline-request" data-notification-id="${Gather.escapeHTML(item.id)}">Decline</button></div>` : '';
-      return `<article class="notification-row ${item.read ? '' : 'unread'}"><div class="notification-avatar">${Gather.avatar(actor)}<span class="notification-icon ${item.type === 'friend-request' ? 'friend' : item.type === 'comment' ? 'reply' : ''}">${icon}</span></div><div class="notification-content"><strong>${Gather.escapeHTML(actor.name)}</strong> ${label}${detail}${actions}</div><time class="notification-time">${Gather.prettyTime(item.createdAt)}</time></article>`;
+      return `<article class="notification-row ${item.read ? '' : 'unread'}" data-type="${Gather.escapeHTML(item.type)}"><div class="notification-avatar">${Gather.avatar(actor)}<span class="notification-icon ${item.type === 'friend-request' ? 'friend' : item.type === 'comment' ? 'reply' : ''}">${icon}</span></div><div class="notification-content"><strong>${Gather.escapeHTML(actor.name)}</strong> ${label}${detail}${actions}</div><time class="notification-time">${Gather.prettyTime(item.createdAt)}</time></article>`;
     }).join('');
     document.querySelector('[data-empty-notifications]')?.classList.toggle('hidden', notifications.length > 0);
   });
@@ -993,7 +1001,135 @@ Gather.start({
       tab.addEventListener('click', () => {
         notificationFilter = tab.dataset.notificationFilter;
         applyFilter();
+        render();
       });
     });
   }
 });
+
+
+
+
+
+
+
+//fetch//
+
+const API_BASE = 'http://localhost:5039';
+
+const notificationActions = new Set(['mark-read', 'accept-request', 'decline-request']);
+
+function showNotificationError(error) {
+  const message = error?.message === 'Failed to fetch'
+    ? 'The server could not be reached.'
+    : (error?.message || 'Something went wrong.');
+  let notice = document.querySelector('[data-notification-error]');
+  if (!notice) {
+    notice = document.createElement('p');
+    notice.dataset.notificationError = '';
+    notice.className = 'subtle';
+    document.querySelector('[data-notification-list]')?.before(notice);
+  }
+  notice.textContent = message;
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const token = Gather.api.token();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    Gather.api.clear();
+    window.location.href = 'login.html';
+    return null;
+  }
+  if (response.status === 204) return null;
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.message || 'Request failed.');
+  return data;
+}
+
+function rememberUser(user) {
+  if (!user?.id) return;
+  const index = Gather.state.users.findIndex(item => item.id === user.id);
+  if (index === -1) Gather.state.users.push(user);
+  else Gather.state.users[index] = { ...Gather.state.users[index], ...user };
+}
+
+function paintNotifications() {
+  document.querySelector('[data-notification-error]')?.remove();
+  Gather.renderShell();
+  render();
+  Gather.applyBranding(Gather.state.site);
+}
+
+async function loadNotifications() {
+  if (!Gather.api.token()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const me = await apiFetch('/api/auth/me');
+    if (!me) return;
+
+    const [site, settings, users, communities, notifications] = await Promise.all([
+      apiFetch('/api/site'),
+      apiFetch('/api/settings'),
+      apiFetch('/api/users'),
+      apiFetch('/api/communities'),
+      apiFetch('/api/notifications')
+    ]);
+
+    Gather.state.currentUserId = me.id;
+    Gather.state.users = users || [];
+    rememberUser(me);
+    if (site) Gather.state.site = { ...Gather.state.site, ...site };
+    if (settings) Object.assign(Gather.appSettings, settings);
+    Gather.state.communities = communities || [];
+    Gather.state.notifications = notifications || [];
+    paintNotifications();
+  } catch (error) {
+    showNotificationError(error);
+    document.querySelector('[data-empty-notifications]')?.classList.add('hidden');
+  }
+}
+
+async function markNotificationsRead() {
+  await apiFetch('/api/notifications/read', { method: 'PUT' });
+  if (!Gather.api.token()) return;
+  Gather.state.notifications.forEach(item => { item.read = true; });
+  paintNotifications();
+}
+
+async function respondToRequest(element, accept) {
+  const id = element.dataset.notificationId;
+  if (!id) return;
+  const updated = await apiFetch(`/api/notifications/${encodeURIComponent(id)}/${accept ? 'accept' : 'decline'}`, { method: 'POST' });
+  if (!updated) return;
+  const index = Gather.state.notifications.findIndex(item => item.id === updated.id);
+  if (index === -1) Gather.state.notifications.unshift(updated);
+  else Gather.state.notifications[index] = updated;
+  if (accept && updated.actorId && !Gather.state.friends.includes(updated.actorId)) {
+    Gather.state.friends.push(updated.actorId);
+  }
+  paintNotifications();
+}
+
+document.addEventListener('click', event => {
+  const element = event.target.closest('[data-action]');
+  if (!element || !notificationActions.has(element.dataset.action)) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  const action = element.dataset.action;
+  const work = action === 'mark-read'
+    ? markNotificationsRead()
+    : respondToRequest(element, action === 'accept-request');
+  work.catch(showNotificationError);
+}, true);
+
+loadNotifications();
+
