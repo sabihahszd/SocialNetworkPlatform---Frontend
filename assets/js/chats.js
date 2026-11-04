@@ -954,7 +954,8 @@
     readPhotoFile,
     readMediaFile,
     clearMediaInput,
-    applyBranding
+    applyBranding,
+    renderShell
   };
 })();
 
@@ -1119,3 +1120,203 @@ Gather.start({
     event.preventDefault();
   }
 });
+
+
+
+
+
+
+
+
+//fetch//
+
+const API_BASE = 'http://localhost:5039';
+
+function showChatError(error) {
+  const message = error?.message === 'Failed to fetch'
+    ? 'The server could not be reached.'
+    : (error?.message || 'Something went wrong.');
+  const thread = document.querySelector('[data-chat-thread]');
+  const anchor = thread?.querySelector('[data-chat-form]');
+  if (anchor) {
+    let notice = thread.querySelector('[data-chat-notice]');
+    if (!notice) {
+      notice = document.createElement('p');
+      notice.dataset.chatNotice = '';
+      notice.className = 'chat-empty-filter';
+      anchor.before(notice);
+    }
+    notice.textContent = message;
+    return;
+  }
+  const list = document.querySelector('[data-chat-list]');
+  if (list) list.innerHTML = `<p class="chat-empty-filter">${Gather.escapeHTML(message)}</p>`;
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const token = Gather.api.token();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    Gather.api.clear();
+    window.location.href = 'login.html';
+    return null;
+  }
+  if (response.status === 204) return null;
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.message || 'Request failed.');
+  return data;
+}
+
+function rememberUser(user) {
+  if (!user?.id) return;
+  const index = Gather.state.users.findIndex(item => item.id === user.id);
+  if (index === -1) Gather.state.users.push(user);
+  else Gather.state.users[index] = { ...Gather.state.users[index], ...user };
+}
+
+function rememberThread(thread) {
+  if (!thread?.id) return;
+  const normalized = {
+    id: thread.id,
+    participantId: thread.participantId,
+    messages: thread.messages || []
+  };
+  const index = Gather.state.chats.findIndex(item => item.id === normalized.id);
+  if (index === -1) Gather.state.chats.unshift(normalized);
+  else Gather.state.chats[index] = normalized;
+}
+
+function applyShareDraft() {
+  const sharedUrl = new URLSearchParams(window.location.search).get('share');
+  const field = document.querySelector('[data-chat-form] textarea');
+  if (sharedUrl && field && !field.value) field.value = `Take a look at this post: ${sharedUrl}`;
+}
+
+function paintChats() {
+  Gather.renderShell();
+  render();
+  Gather.applyBranding(Gather.state.site);
+  applyShareDraft();
+}
+
+async function loadChats() {
+  if (!Gather.api.token()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const me = await apiFetch('/api/auth/me');
+    if (!me) return;
+
+    const [site, settings, users, notifications, chats] = await Promise.all([
+      apiFetch('/api/site'),
+      apiFetch('/api/settings'),
+      apiFetch('/api/users'),
+      apiFetch('/api/notifications'),
+      apiFetch('/api/chats')
+    ]);
+
+    Gather.state.currentUserId = me.id;
+    Gather.state.users = users || [];
+    rememberUser(me);
+    if (site) Gather.state.site = { ...Gather.state.site, ...site };
+    if (settings) Object.assign(Gather.appSettings, settings);
+    Gather.state.notifications = notifications || [];
+    Gather.state.chats = [];
+    (chats || []).forEach(rememberThread);
+    paintChats();
+  } catch (error) {
+    showChatError(error);
+  }
+}
+
+async function refreshThread(id) {
+  if (!id) return null;
+  const thread = await apiFetch(`/api/chats/${encodeURIComponent(id)}`);
+  if (thread) rememberThread(thread);
+  return thread;
+}
+
+async function sendChatMessage(form) {
+  const field = form.elements.namedItem('message');
+  const text = field?.value.trim();
+  if (!text || !activeChatId) return;
+  const message = await apiFetch(`/api/chats/${encodeURIComponent(activeChatId)}/messages`, {
+    method: 'POST',
+    body: JSON.stringify({ text })
+  });
+  if (!message) return;
+  const thread = Gather.state.chats.find(item => item.id === activeChatId);
+  if (thread && !thread.messages.some(item => item.id === message.id)) thread.messages.push(message);
+  field.value = '';
+  render();
+}
+
+async function saveChatEdit(form) {
+  const text = form.elements.namedItem('edit-text')?.value.trim();
+  const chatId = form.dataset.chatId;
+  const messageId = form.dataset.messageId;
+  if (!text || !chatId || !messageId) return;
+  const message = await apiFetch(`/api/chats/${encodeURIComponent(chatId)}/messages/${encodeURIComponent(messageId)}`, {
+    method: 'PUT',
+    body: JSON.stringify({ text })
+  });
+  if (!message) return;
+  const thread = Gather.state.chats.find(item => item.id === chatId);
+  const index = thread?.messages.findIndex(item => item.id === message.id) ?? -1;
+  if (thread && index >= 0) thread.messages[index] = message;
+  render();
+}
+
+async function deleteChatMessage(element) {
+  const chatId = element.dataset.chatId;
+  const messageId = element.dataset.messageId;
+  if (!chatId || !messageId || element.dataset.pending === '1') return;
+  element.dataset.pending = '1';
+  try {
+    await apiFetch(`/api/chats/${encodeURIComponent(chatId)}/messages/${encodeURIComponent(messageId)}`, { method: 'DELETE' });
+    const thread = Gather.state.chats.find(item => item.id === chatId);
+    if (thread) thread.messages = thread.messages.filter(item => item.id !== messageId);
+    render();
+  } catch (error) {
+    showChatError(error);
+  } finally {
+    delete element.dataset.pending;
+  }
+}
+
+document.addEventListener('click', event => {
+  const element = event.target.closest('[data-action]');
+  if (!element) return;
+  if (element.dataset.action === 'delete-chat-message') {
+    deleteChatMessage(element);
+    return;
+  }
+  if (element.dataset.action !== 'select-chat') return;
+  const chatId = element.dataset.chatId;
+  refreshThread(chatId).then(() => {
+    if (activeChatId === chatId) render();
+  }).catch(showChatError);
+});
+
+document.addEventListener('submit', event => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement)) return;
+  if (form.matches('[data-edit-chat-form]')) {
+    event.preventDefault();
+    saveChatEdit(form).catch(showChatError);
+    return;
+  }
+  if (!form.matches('[data-chat-form]')) return;
+  event.preventDefault();
+  sendChatMessage(form).catch(showChatError);
+});
+
+loadChats();
+
