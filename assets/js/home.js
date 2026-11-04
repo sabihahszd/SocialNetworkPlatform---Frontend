@@ -639,7 +639,7 @@
           ...state.chats.map(thread => ({ user: userById(thread.participantId), kind: 'Chat' })),
           ...state.friends.filter(friendId => !chatIds.has(friendId)).map(friendId => ({ user: userById(friendId), kind: 'Friend' }))
         ].filter(target => target.user?.id && target.user.id !== 'someone');
-        const shareList = shareTargets.length ? `<div class="share-chat-list">${shareTargets.map(target => `<button class="share-chat" type="button" data-action="share-to-chat">${avatar(target.user)}<span class="share-chat-copy"><strong>${escapeHTML(target.user.name)}</strong><span>@${escapeHTML(target.user.username)}</span></span><span class="share-chat-kind">${target.kind}</span></button>`).join('')}</div>` : '';
+        const shareList = shareTargets.length ? `<div class="share-chat-list">${shareTargets.map(target => `<button class="share-chat" type="button" data-action="share-to-chat" data-user-id="${escapeHTML(target.user.id)}">${avatar(target.user)}<span class="share-chat-copy"><strong>${escapeHTML(target.user.name)}</strong><span>@${escapeHTML(target.user.username)}</span></span><span class="share-chat-kind">${target.kind}</span></button>`).join('')}</div>` : '';
         document.querySelector('[data-share-options]').innerHTML = `${shareList}<div class="share-platforms"><button type="button" data-action="share-copy" data-url="${escapeHTML(url)}" aria-label="Copy link"><i class="fa-regular fa-clone"></i></button><a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on Facebook"><i class="fa-brands fa-facebook"></i></a><a href="https://twitter.com/intent/tweet?url=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on X"><i class="fa-brands fa-x-twitter"></i></a><a href="https://wa.me/?text=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on WhatsApp"><i class="fa-brands fa-whatsapp"></i></a></div>`;
         document.querySelector('[data-share-notice]').textContent = '';
         document.querySelector('[data-share-url-wrap]')?.classList.add('hidden');
@@ -954,7 +954,8 @@
     readPhotoFile,
     readMediaFile,
     clearMediaInput,
-    applyBranding
+    applyBranding,
+    renderShell
   };
 })();
 
@@ -1038,9 +1039,6 @@ Gather.start({
   bind() {
     const applyFeed = () => {
       document.querySelectorAll('[data-feed]').forEach(item => item.classList.toggle('active', item.dataset.feed === feedFilter));
-      document.querySelectorAll('[data-feed-list] .post-card').forEach(card => {
-        card.hidden = feedFilter === 'friends' && card.dataset.source !== 'friends';
-      });
     };
     applyFeed();
     renderPostDetail();
@@ -1048,30 +1046,380 @@ Gather.start({
       tab.addEventListener('click', () => {
         feedFilter = tab.dataset.feed;
         applyFeed();
+        loadFeed().catch(error => showActionError(tab, error));
       });
     });
   },
   action(name) {
-    if (name !== 'create-post') return;
-    const textInput = document.querySelector('#post-text');
-    const text = textInput?.value.trim();
-    if (!text) return;
-    const privacySelect = document.querySelector('#post-privacy');
-    const privacyLabel = privacySelect?.selectedOptions?.[0]?.textContent?.trim() || 'Everyone';
-    const preview = document.querySelector('[data-post-media-preview] img, [data-post-media-preview] video');
-    const image = preview?.src ? `<img class="post-image" src="${Gather.escapeHTML(preview.src)}" alt="Photo you attached">` : '';
-    const card = document.createElement('article');
-    card.className = 'post-card';
-    card.dataset.source = 'friends';
-    const postId = `local-${Date.now()}`;
-    card.dataset.postId = postId;
-    const user = Gather.currentUser();
-    const identity = user
-      ? `${Gather.avatar(user)}<div class="post-author"><strong>${Gather.escapeHTML(user.name)}</strong><span class="handle">@${Gather.escapeHTML(user.username)}</span>`
-      : '<span class="avatar"></span><div class="post-author"><strong></strong><span class="handle"></span>';
-    card.innerHTML = `<div class="post-header">${identity}<span class="post-context"><span class="context-icon">◉</span>${Gather.escapeHTML(privacyLabel)} · just now</span></div><button class="icon-button post-menu" type="button" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${Gather.escapeHTML(text)}</p>${image}<div class="post-actions"><button class="post-action" type="button" data-action="toggle-like" aria-label="Like post"><i class="fa-regular fa-heart"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="toggle-repost" aria-label="Repost"><i class="fa-solid fa-retweet"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="open-post" data-post-id="${postId}" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="toggle-bookmark" aria-label="Save post"><i class="fa-regular fa-bookmark"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share post"><i class="fa-solid fa-share-nodes"></i></button></div><form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form>`;
-    document.querySelector('[data-feed-list]')?.prepend(card);
-    textInput.value = '';
-    Gather.clearMediaInput(document.querySelector('#post-image'), '[data-post-media-preview]', '[data-post-media-notice]');
+    if (name === 'create-post') return submitHomePost();
   }
 });
+
+const API_BASE = 'http://localhost:5039';
+let feedGeneration = 0;
+
+const homeActions = new Set([
+  'toggle-like',
+  'toggle-repost',
+  'toggle-bookmark',
+  'delete-post',
+  'delete-comment',
+  'submit-report',
+  'send-request',
+  'toggle-community',
+  'submit-community',
+  'share-to-chat'
+]);
+
+
+
+
+
+//fetch//
+
+function feedPath() {
+  return feedFilter === 'friends' ? '/api/posts?feed=friends' : '/api/posts';
+}
+
+function showActionError(element, error) {
+  const notice = element?.closest('dialog')?.querySelector('[role="status"]')
+    || document.querySelector('[data-post-media-notice]');
+  if (notice) notice.textContent = error?.message || 'Something went wrong.';
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const token = Gather.api.token();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    Gather.api.clear();
+    window.location.href = 'login.html';
+    return null;
+  }
+  if (response.status === 204) return null;
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.message || 'Request failed.');
+  return data;
+}
+
+function rememberUser(user) {
+  if (!user?.id) return;
+  const index = Gather.state.users.findIndex(item => item.id === user.id);
+  if (index === -1) Gather.state.users.push(user);
+  else Gather.state.users[index] = { ...Gather.state.users[index], ...user };
+}
+
+function upsertPost(post) {
+  if (!post?.id) return;
+  const index = Gather.state.posts.findIndex(item => item.id === post.id);
+  if (index === -1) Gather.state.posts.unshift(post);
+  else Gather.state.posts[index] = post;
+}
+
+function paintHome() {
+  Gather.renderShell();
+  render();
+  Gather.applyBranding(Gather.state.site);
+  document.querySelector('.request-section')?.classList.toggle('hidden', Gather.appSettings.showSuggestions === false);
+}
+
+async function refreshPost(id) {
+  if (!id) return null;
+  const post = await apiFetch(`/api/posts/${encodeURIComponent(id)}`);
+  if (post) upsertPost(post);
+  return post;
+}
+
+async function loadFeed() {
+  const generation = ++feedGeneration;
+  const posts = await apiFetch(feedPath());
+  if (generation !== feedGeneration || !posts) return;
+  const requestedId = new URLSearchParams(window.location.search).get('post');
+  const openPost = requestedId && Gather.state.posts.find(post => post.id === requestedId);
+  Gather.state.posts = posts;
+  if (openPost && !posts.some(post => post.id === openPost.id)) Gather.state.posts.push(openPost);
+  render();
+}
+
+async function loadHome() {
+  if (!Gather.api.token()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const me = await apiFetch('/api/auth/me');
+    if (!me) return;
+
+    const [site, settings, friends, outgoing, communities, notifications, chats, users] = await Promise.all([
+      apiFetch('/api/site'),
+      apiFetch('/api/settings'),
+      apiFetch('/api/friends'),
+      apiFetch('/api/friends/requests/outgoing'),
+      apiFetch('/api/communities'),
+      apiFetch('/api/notifications'),
+      apiFetch('/api/chats'),
+      apiFetch('/api/users')
+    ]);
+
+    Gather.state.currentUserId = me.id;
+    Gather.state.users = users || [];
+    rememberUser(me);
+    if (site) Gather.state.site = { ...Gather.state.site, ...site };
+    if (settings) Object.assign(Gather.appSettings, settings);
+    Gather.state.friends = (friends || []).map(item => item.friendId);
+    Gather.state.outgoingRequests = (outgoing || [])
+      .filter(item => item.status === 'pending')
+      .map(item => item.toUserId);
+    Gather.state.communities = communities || [];
+    Gather.state.notifications = notifications || [];
+    Gather.state.chats = (chats || []).map(thread => ({
+      id: thread.id,
+      participantId: thread.participantId,
+      messages: thread.messages || []
+    }));
+
+    await loadFeed();
+    const requestedId = new URLSearchParams(window.location.search).get('post');
+    if (requestedId && !Gather.state.posts.some(post => post.id === requestedId)) {
+      const post = await apiFetch(`/api/posts/${encodeURIComponent(requestedId)}`);
+      if (post) Gather.state.posts.push(post);
+    }
+
+    paintHome();
+  } catch (error) {
+    const empty = document.querySelector('[data-empty-feed]');
+    const copy = empty?.querySelector('p');
+    const message = error?.message === 'Failed to fetch' ? 'The server could not be reached.' : error.message;
+    if (copy) copy.textContent = message || 'The feed could not be loaded.';
+    empty?.classList.remove('hidden');
+  }
+}
+
+async function submitHomePost() {
+  const textInput = document.querySelector('#post-text');
+  const text = textInput?.value.trim();
+  const notice = document.querySelector('[data-post-media-notice]');
+  if (!text) return;
+
+  const audience = document.querySelector('#post-privacy')?.value || 'public';
+  const preview = document.querySelector('[data-post-media-preview] img, [data-post-media-preview] video');
+  const body = { text, privacy: 'public', image: '', video: '' };
+  if (audience === 'friends') body.privacy = 'friends';
+  else if (audience.startsWith('community:')) {
+    body.privacy = 'communities';
+    body.communityId = audience.slice('community:'.length);
+  }
+  if (preview instanceof HTMLVideoElement) body.video = preview.src;
+  else if (preview?.src) body.image = preview.src;
+
+  try {
+    const post = await apiFetch('/api/posts', { method: 'POST', body: JSON.stringify(body) });
+    if (!post) return;
+    upsertPost(post);
+    textInput.value = '';
+    Gather.clearMediaInput(document.querySelector('#post-image'), '[data-post-media-preview]', '[data-post-media-notice]');
+    render();
+  } catch (error) {
+    if (notice) notice.textContent = error.message;
+  }
+}
+
+async function runHomeAction(element, work) {
+  if (element.dataset.pending === '1') return;
+  element.dataset.pending = '1';
+  try {
+    await work();
+  } catch (error) {
+    showActionError(element, error);
+  } finally {
+    delete element.dataset.pending;
+  }
+}
+
+async function handleHomeAction(name, element) {
+  const postId = element.dataset.postId || element.closest('[data-post-id]')?.dataset.postId;
+
+  if (name === 'toggle-like' || name === 'toggle-repost' || name === 'toggle-bookmark') {
+    const action = name === 'toggle-like' ? 'like' : name === 'toggle-repost' ? 'repost' : 'bookmark';
+    const post = await apiFetch(`/api/posts/${encodeURIComponent(postId)}/${action}`, { method: 'POST' });
+    if (!post) return;
+    upsertPost(post);
+    render();
+    return;
+  }
+
+  if (name === 'delete-post') {
+    await apiFetch(`/api/posts/${encodeURIComponent(postId)}`, { method: 'DELETE' });
+    Gather.state.posts = Gather.state.posts.filter(post => post.id !== postId);
+    document.querySelector('[data-post-options-modal]')?.close();
+    if (new URLSearchParams(window.location.search).get('post') === postId) {
+      window.location.href = 'home.html';
+      return;
+    }
+    render();
+    return;
+  }
+
+  if (name === 'delete-comment') {
+    await apiFetch(`/api/comments/${encodeURIComponent(element.dataset.commentId)}`, { method: 'DELETE' });
+    await refreshPost(postId);
+    render();
+    return;
+  }
+
+  if (name === 'submit-report') {
+    const dialog = element.closest('dialog');
+    const report = await apiFetch('/api/reports', {
+      method: 'POST',
+      body: JSON.stringify({
+        postId: dialog?.dataset.postId,
+        reason: dialog?.querySelector('[data-report-reason]')?.value || '',
+        details: dialog?.querySelector('[data-report-details]')?.value || ''
+      })
+    });
+    if (!report) return;
+    dialog?.close();
+    return;
+  }
+
+  if (name === 'send-request') {
+    const userId = element.dataset.userId;
+    const request = await apiFetch(`/api/friends/requests/${encodeURIComponent(userId)}`, { method: 'POST' });
+    if (!request) return;
+    if (request.status === 'pending' && !Gather.state.outgoingRequests.includes(userId)) {
+      Gather.state.outgoingRequests.push(userId);
+    }
+    Gather.renderShell();
+    return;
+  }
+
+  if (name === 'toggle-community') {
+    const community = await apiFetch(`/api/communities/${encodeURIComponent(element.dataset.communityId)}/join`, { method: 'POST' });
+    if (!community) return;
+    const index = Gather.state.communities.findIndex(item => item.id === community.id);
+    if (index === -1) Gather.state.communities.push(community);
+    else Gather.state.communities[index] = community;
+    paintHome();
+    return;
+  }
+
+  if (name === 'submit-community') {
+    const form = element.closest('form');
+    const nameValue = form?.elements.namedItem('community-name')?.value.trim();
+    const notice = form?.querySelector('[data-card-art-notice]');
+    if (!nameValue) return;
+    const file = form.querySelector('[data-card-art-file]')?.files?.[0];
+    let banner = '';
+    if (file) {
+      try { banner = await Gather.readPhotoFile(file); }
+      catch (error) { if (notice) notice.textContent = error.message; return; }
+    }
+    const community = await apiFetch('/api/communities', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: nameValue,
+        description: form.elements.namedItem('community-description')?.value.trim() || '',
+        emoji: nameValue.slice(0, 1).toUpperCase(),
+        color: '#e1d5f0',
+        banner
+      })
+    });
+    if (!community) return;
+    Gather.state.communities.unshift(community);
+    form.reset();
+    form.closest('dialog')?.close();
+    paintHome();
+    return;
+  }
+
+  if (name === 'share-to-chat') {
+    const dialog = element.closest('dialog');
+    const sharedPostId = dialog?.dataset.postId;
+    const url = new URL(`home.html?post=${encodeURIComponent(sharedPostId)}`, window.location.href).href;
+    const sent = await apiFetch('/api/chats/direct', {
+      method: 'POST',
+      body: JSON.stringify({ participantId: element.dataset.userId, text: url })
+    });
+    if (!sent) return;
+    const label = element.querySelector('.share-chat-kind');
+    if (label) label.textContent = 'Sent';
+  }
+}
+
+async function handleHomeSubmit(form) {
+  const postId = form.dataset.postId || form.closest('[data-post-id]')?.dataset.postId;
+
+  if (form.matches('[data-edit-post-form]')) {
+    const text = form.elements.namedItem('edit-text')?.value.trim();
+    if (!text) return;
+    const post = await apiFetch(`/api/posts/${encodeURIComponent(postId)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ text })
+    });
+    if (!post) return;
+    upsertPost(post);
+    render();
+    return;
+  }
+
+  if (form.matches('[data-edit-comment-form]')) {
+    const text = form.elements.namedItem('edit-text')?.value.trim();
+    if (!text) return;
+    const comment = await apiFetch(`/api/comments/${encodeURIComponent(form.dataset.commentId)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ text })
+    });
+    if (!comment) return;
+    await refreshPost(postId);
+    render();
+    return;
+  }
+
+  if (form.matches('[data-comment-form]')) {
+    const text = form.elements.namedItem('comment')?.value.trim();
+    if (!text || !postId) return;
+    const comment = await apiFetch(`/api/comments/post/${encodeURIComponent(postId)}`, {
+      method: 'POST',
+      body: JSON.stringify({ text, parentId: form.dataset.replyParent || null })
+    });
+    if (!comment) return;
+    await refreshPost(postId);
+    render();
+  }
+}
+
+document.addEventListener('click', event => {
+  const element = event.target.closest('[data-action]');
+  if (!element || !homeActions.has(element.dataset.action)) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  runHomeAction(element, () => handleHomeAction(element.dataset.action, element));
+}, true);
+
+document.addEventListener('submit', event => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement)) return;
+  if (!form.matches('[data-comment-form], [data-edit-comment-form], [data-edit-post-form]')) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  handleHomeSubmit(form).catch(error => showActionError(form, error));
+}, true);
+
+loadHome();
+
+
+
+
+
+
+
+
+
+
+
+
