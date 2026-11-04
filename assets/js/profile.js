@@ -639,7 +639,7 @@
           ...state.chats.map(thread => ({ user: userById(thread.participantId), kind: 'Chat' })),
           ...state.friends.filter(friendId => !chatIds.has(friendId)).map(friendId => ({ user: userById(friendId), kind: 'Friend' }))
         ].filter(target => target.user?.id && target.user.id !== 'someone');
-        const shareList = shareTargets.length ? `<div class="share-chat-list">${shareTargets.map(target => `<button class="share-chat" type="button" data-action="share-to-chat">${avatar(target.user)}<span class="share-chat-copy"><strong>${escapeHTML(target.user.name)}</strong><span>@${escapeHTML(target.user.username)}</span></span><span class="share-chat-kind">${target.kind}</span></button>`).join('')}</div>` : '';
+        const shareList = shareTargets.length ? `<div class="share-chat-list">${shareTargets.map(target => `<button class="share-chat" type="button" data-action="share-to-chat" data-user-id="${escapeHTML(target.user.id)}">${avatar(target.user)}<span class="share-chat-copy"><strong>${escapeHTML(target.user.name)}</strong><span>@${escapeHTML(target.user.username)}</span></span><span class="share-chat-kind">${target.kind}</span></button>`).join('')}</div>` : '';
         document.querySelector('[data-share-options]').innerHTML = `${shareList}<div class="share-platforms"><button type="button" data-action="share-copy" data-url="${escapeHTML(url)}" aria-label="Copy link"><i class="fa-regular fa-clone"></i></button><a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on Facebook"><i class="fa-brands fa-facebook"></i></a><a href="https://twitter.com/intent/tweet?url=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on X"><i class="fa-brands fa-x-twitter"></i></a><a href="https://wa.me/?text=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on WhatsApp"><i class="fa-brands fa-whatsapp"></i></a></div>`;
         document.querySelector('[data-share-notice]').textContent = '';
         document.querySelector('[data-share-url-wrap]')?.classList.add('hidden');
@@ -954,7 +954,8 @@
     readPhotoFile,
     readMediaFile,
     clearMediaInput,
-    applyBranding
+    applyBranding,
+    renderShell
   };
 })();
 
@@ -1038,7 +1039,7 @@ function renderConnectionList(kind) {
   dialog.querySelector('[data-connections-title]').textContent = titles[kind] || 'People';
   dialog.querySelectorAll('.connection-tabs [data-connection]').forEach(tab => tab.classList.toggle('active', tab.dataset.connection === kind));
   const people = connectionIds(kind).map(Gather.userById).filter(user => user?.id && user.id !== 'someone');
-  dialog.querySelector('[data-connection-list]').innerHTML = people.map(user => `<article class="friend-row">${Gather.avatar(user)}<div><strong>${Gather.escapeHTML(user.name)}</strong><span>@${Gather.escapeHTML(user.username)}</span></div><div class="friend-row-actions"><button class="icon-button" type="button" data-action="user-options" data-user-name="${Gather.escapeHTML(user.name)}" data-handle="@${Gather.escapeHTML(user.username)}" aria-label="Profile options">···</button></div></article>`).join('') || '<p class="empty-hint">No one here yet.</p>';
+  dialog.querySelector('[data-connection-list]').innerHTML = people.map(user => `<article class="friend-row">${Gather.avatar(user)}<div><strong>${Gather.escapeHTML(user.name)}</strong><span>@${Gather.escapeHTML(user.username)}</span></div><div class="friend-row-actions"><button class="icon-button" type="button" data-action="user-options" data-user-id="${Gather.escapeHTML(user.id)}" data-user-name="${Gather.escapeHTML(user.name)}" data-handle="@${Gather.escapeHTML(user.username)}" aria-label="Profile options">···</button></div></article>`).join('') || '<p class="empty-hint">No one here yet.</p>';
 }
 
 function ensureUserOptions() {
@@ -1109,6 +1110,7 @@ Gather.start({
     if (name === 'user-options') {
       ensureUserOptions();
       const dialog = document.querySelector('[data-user-options-modal]');
+      dialog.dataset.userId = element.dataset.userId || '';
       dialog.dataset.userName = element.dataset.userName || '';
       dialog.dataset.handle = element.dataset.handle || '';
       dialog.showModal();
@@ -1165,3 +1167,321 @@ Gather.start({
     form.closest('dialog')?.close();
   }
 });
+
+
+
+
+
+
+
+
+//fetch//
+
+const API_BASE = 'http://localhost:5039';
+
+const profileActions = new Set([
+  'toggle-like',
+  'toggle-repost',
+  'toggle-bookmark',
+  'delete-post',
+  'delete-comment',
+  'submit-report',
+  'share-to-chat',
+  'toggle-community',
+  'save-profile',
+  'block-user'
+]);
+
+function showProfileError(element, error) {
+  const notice = element?.closest('form, dialog')?.querySelector('[data-photo-notice], [data-banner-notice], [role="status"]')
+    || document.querySelector('[data-profile-post-count]');
+  if (!notice) return;
+  notice.textContent = error?.message === 'Failed to fetch'
+    ? 'The server could not be reached.'
+    : (error?.message || 'Something went wrong.');
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const token = Gather.api.token();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    Gather.api.clear();
+    window.location.href = 'login.html';
+    return null;
+  }
+  if (response.status === 204) return null;
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.message || 'Request failed.');
+  return data;
+}
+
+function rememberUser(user) {
+  if (!user?.id) return;
+  const index = Gather.state.users.findIndex(item => item.id === user.id);
+  if (index === -1) Gather.state.users.push(user);
+  else Gather.state.users[index] = { ...Gather.state.users[index], ...user };
+}
+
+function upsertPost(post) {
+  if (!post?.id) return;
+  const index = Gather.state.posts.findIndex(item => item.id === post.id);
+  if (index === -1) Gather.state.posts.unshift(post);
+  else Gather.state.posts[index] = post;
+}
+
+function paintProfile() {
+  Gather.renderShell();
+  render();
+  Gather.applyBranding(Gather.state.site);
+}
+
+async function refreshPost(id) {
+  if (!id) return null;
+  const post = await apiFetch(`/api/posts/${encodeURIComponent(id)}`);
+  if (post) upsertPost(post);
+  return post;
+}
+
+async function loadProfile() {
+  if (!Gather.api.token()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const me = await apiFetch('/api/auth/me');
+    if (!me) return;
+
+    const [site, settings, users, friends, posts, communities, notifications, chats] = await Promise.all([
+      apiFetch('/api/site'),
+      apiFetch('/api/settings'),
+      apiFetch('/api/users'),
+      apiFetch('/api/friends'),
+      apiFetch('/api/posts'),
+      apiFetch('/api/communities'),
+      apiFetch('/api/notifications'),
+      apiFetch('/api/chats')
+    ]);
+
+    Gather.state.currentUserId = me.id;
+    Gather.state.users = users || [];
+    rememberUser(me);
+    if (site) Gather.state.site = { ...Gather.state.site, ...site };
+    if (settings) Object.assign(Gather.appSettings, settings);
+    Gather.state.friends = (friends || []).map(item => item.friendId);
+    Gather.state.posts = posts || [];
+    Gather.state.communities = communities || [];
+    Gather.state.notifications = notifications || [];
+    Gather.state.chats = (chats || []).map(thread => ({
+      id: thread.id,
+      participantId: thread.participantId,
+      messages: thread.messages || []
+    }));
+    paintProfile();
+  } catch (error) {
+    showProfileError(null, error);
+  }
+}
+
+async function saveProfile(element) {
+  const form = element.closest('form');
+  if (!form) return;
+  const photoNotice = form.querySelector('[data-photo-notice]');
+  const bannerNotice = form.querySelector('[data-banner-notice]');
+  const photoInput = form.querySelector('[data-avatar-file]');
+  const bannerInput = form.querySelector('[data-banner-file]');
+  let photo = '';
+  let banner = '';
+  if (photoInput?.files?.[0]) {
+    try { photo = await Gather.readPhotoFile(photoInput.files[0]); }
+    catch (error) { if (photoNotice) photoNotice.textContent = error.message; return; }
+  }
+  if (bannerInput?.files?.[0]) {
+    try { banner = await Gather.readPhotoFile(bannerInput.files[0]); }
+    catch (error) { if (bannerNotice) bannerNotice.textContent = error.message; return; }
+  }
+
+  const body = {
+    name: form.elements.namedItem('name')?.value.trim() || '',
+    bio: form.elements.namedItem('bio')?.value.trim() || '',
+    location: form.elements.namedItem('location')?.value.trim() || ''
+  };
+  if (photo) body.photo = photo;
+  if (banner) body.banner = banner;
+
+  const user = await apiFetch('/api/auth/me', { method: 'PUT', body: JSON.stringify(body) });
+  if (!user) return;
+  rememberUser(user);
+  Gather.state.currentUserId = user.id;
+  form.closest('dialog')?.close();
+  paintProfile();
+}
+
+async function runProfileAction(element, work) {
+  if (element.dataset.pending === '1') return;
+  element.dataset.pending = '1';
+  try {
+    await work();
+  } catch (error) {
+    showProfileError(element, error);
+  } finally {
+    delete element.dataset.pending;
+  }
+}
+
+async function handleProfileAction(name, element) {
+  const postId = element.dataset.postId || element.closest('[data-post-id]')?.dataset.postId;
+
+  if (name === 'save-profile') {
+    await saveProfile(element);
+    return;
+  }
+
+  if (name === 'block-user') {
+    const dialog = document.querySelector('[data-user-options-modal]');
+    const userId = dialog?.dataset.userId;
+    if (!userId) {
+      dialog?.close();
+      return;
+    }
+    const settings = await apiFetch(`/api/settings/blocked/${encodeURIComponent(userId)}`, { method: 'POST' });
+    if (!settings) return;
+    Object.assign(Gather.appSettings, settings);
+    dialog?.close();
+    paintProfile();
+    const connections = document.querySelector('[data-connections-modal]');
+    if (connections?.open) {
+      const active = connections.querySelector('.connection-tabs .feed-tab.active')?.dataset.connection || 'friends';
+      renderConnectionList(active);
+    }
+    return;
+  }
+
+  if (name === 'toggle-like' || name === 'toggle-repost' || name === 'toggle-bookmark') {
+    const action = name === 'toggle-like' ? 'like' : name === 'toggle-repost' ? 'repost' : 'bookmark';
+    const post = await apiFetch(`/api/posts/${encodeURIComponent(postId)}/${action}`, { method: 'POST' });
+    if (!post) return;
+    upsertPost(post);
+    render();
+    return;
+  }
+
+  if (name === 'delete-post') {
+    await apiFetch(`/api/posts/${encodeURIComponent(postId)}`, { method: 'DELETE' });
+    Gather.state.posts = Gather.state.posts.filter(post => post.id !== postId);
+    document.querySelector('[data-post-options-modal]')?.close();
+    render();
+    return;
+  }
+
+  if (name === 'delete-comment') {
+    await apiFetch(`/api/comments/${encodeURIComponent(element.dataset.commentId)}`, { method: 'DELETE' });
+    await refreshPost(postId);
+    render();
+    return;
+  }
+
+  if (name === 'submit-report') {
+    const dialog = element.closest('dialog');
+    const report = await apiFetch('/api/reports', {
+      method: 'POST',
+      body: JSON.stringify({
+        postId: dialog?.dataset.postId,
+        reason: dialog?.querySelector('[data-report-reason]')?.value || '',
+        details: dialog?.querySelector('[data-report-details]')?.value || ''
+      })
+    });
+    if (!report) return;
+    dialog?.close();
+    return;
+  }
+
+  if (name === 'share-to-chat') {
+    const dialog = element.closest('dialog');
+    const url = new URL(`home.html?post=${encodeURIComponent(dialog?.dataset.postId || '')}`, window.location.href).href;
+    const sent = await apiFetch('/api/chats/direct', {
+      method: 'POST',
+      body: JSON.stringify({ participantId: element.dataset.userId, text: url })
+    });
+    if (!sent) return;
+    const label = element.querySelector('.share-chat-kind');
+    if (label) label.textContent = 'Sent';
+    return;
+  }
+
+  if (name === 'toggle-community') {
+    const community = await apiFetch(`/api/communities/${encodeURIComponent(element.dataset.communityId)}/join`, { method: 'POST' });
+    if (!community) return;
+    const index = Gather.state.communities.findIndex(item => item.id === community.id);
+    if (index === -1) Gather.state.communities.push(community);
+    else Gather.state.communities[index] = community;
+    paintProfile();
+  }
+}
+
+async function handleProfileSubmit(form) {
+  const postId = form.dataset.postId || form.closest('[data-post-id]')?.dataset.postId;
+
+  if (form.matches('[data-edit-post-form]')) {
+    const text = form.elements.namedItem('edit-text')?.value.trim();
+    if (!text) return;
+    const post = await apiFetch(`/api/posts/${encodeURIComponent(postId)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ text })
+    });
+    if (!post) return;
+    upsertPost(post);
+    render();
+    return;
+  }
+
+  if (form.matches('[data-edit-comment-form]')) {
+    const text = form.elements.namedItem('edit-text')?.value.trim();
+    if (!text) return;
+    const comment = await apiFetch(`/api/comments/${encodeURIComponent(form.dataset.commentId)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ text })
+    });
+    if (!comment) return;
+    await refreshPost(postId);
+    render();
+    return;
+  }
+
+  if (form.matches('[data-comment-form]')) {
+    const text = form.elements.namedItem('comment')?.value.trim();
+    if (!text || !postId) return;
+    const comment = await apiFetch(`/api/comments/post/${encodeURIComponent(postId)}`, {
+      method: 'POST',
+      body: JSON.stringify({ text, parentId: form.dataset.replyParent || null })
+    });
+    if (!comment) return;
+    await refreshPost(postId);
+    render();
+  }
+}
+
+document.addEventListener('click', event => {
+  const element = event.target.closest('[data-action]');
+  if (!element || !profileActions.has(element.dataset.action)) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  runProfileAction(element, () => handleProfileAction(element.dataset.action, element));
+}, true);
+
+document.addEventListener('submit', event => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement)) return;
+  if (!form.matches('[data-comment-form], [data-edit-comment-form], [data-edit-post-form]')) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  handleProfileSubmit(form).catch(error => showProfileError(form, error));
+}, true);
+
+loadProfile();
+
