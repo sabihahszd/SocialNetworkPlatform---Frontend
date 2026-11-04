@@ -959,3 +959,71 @@
 })();
 
 Gather.start({ guest: true });
+
+
+
+
+
+
+//fetch//
+
+const API_BASE = 'http://localhost:5039';
+
+async function apiFetch(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  if (response.status === 204) return null;
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.message || 'Request failed.');
+  return data;
+}
+
+async function loadLoginSite() {
+  try {
+    const site = await apiFetch('/api/site');
+    if (!site) return;
+    Gather.state.site = { ...Gather.state.site, ...site };
+    Gather.applyBranding(Gather.state.site);
+  } catch {
+    // The form still works when branding cannot be loaded.
+  }
+}
+
+async function submitLogin(form) {
+  const notice = form.querySelector('[data-auth-notice]');
+  const button = form.querySelector('[type="submit"]');
+  const body = {
+    identity: form.elements.namedItem('identity')?.value.trim() || '',
+    password: form.elements.namedItem('password')?.value || ''
+  };
+
+  if (button) button.disabled = true;
+  if (notice) notice.textContent = '';
+  try {
+    const result = await apiFetch('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    if (!result?.token) throw new Error('That email or password is not right.');
+    Gather.api.setToken(result.token);
+    window.location.href = 'home.html';
+  } catch (error) {
+    if (notice) {
+      notice.textContent = error?.message === 'Failed to fetch'
+        ? 'The server could not be reached.'
+        : (error.message || 'That email or password is not right.');
+    }
+    if (button) button.disabled = false;
+  }
+}
+
+document.addEventListener('submit', event => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement) || form.dataset.authForm !== 'login') return;
+  event.preventDefault();
+  submitLogin(form);
+});
+
+loadLoginSite();
+
