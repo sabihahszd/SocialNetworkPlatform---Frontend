@@ -916,9 +916,10 @@
       renderSearch(query);
     }
     options.bind?.();
+    const pendingAdmin = document.body.dataset.page === 'admin' && !state.currentUserId;
     const adminAllowed = document.body.dataset.page !== 'admin' || isAdmin();
-    document.querySelector('[data-admin-console]')?.classList.toggle('hidden', !adminAllowed);
-    document.querySelector('[data-admin-denied]')?.classList.toggle('hidden', adminAllowed);
+    document.querySelector('[data-admin-console]')?.classList.toggle('hidden', pendingAdmin || !adminAllowed);
+    document.querySelector('[data-admin-denied]')?.classList.toggle('hidden', pendingAdmin || adminAllowed);
     renderShell();
     applyBranding(state.site);
     if (adminAllowed) options.render?.();
@@ -1002,7 +1003,9 @@ function renderPosts(query = '') {
     }).sort(Gather.byNewest);
     container.innerHTML = matching.map(post => {
       const author = Gather.userById(post.authorId);
-      return `<article class="admin-content-row"><div class="admin-member-info"><strong>${Gather.escapeHTML(author.name || 'Member')}</strong><span>@${Gather.escapeHTML(author.username || 'member')} · ${Gather.prettyTime(post.createdAt)} ago</span><p>${Gather.escapeHTML(post.text)}</p></div><div class="admin-member-actions"><button class="button button-small button-following" type="button" data-action="remove-post" data-post-id="${Gather.escapeHTML(post.id)}">Remove</button></div></article>`;
+      const authorName = post.authorName || author.name || 'Member';
+      const authorUsername = post.authorUsername || author.username || 'member';
+      return `<article class="admin-content-row"><div class="admin-member-info"><strong>${Gather.escapeHTML(authorName)}</strong><span>@${Gather.escapeHTML(authorUsername)} · ${Gather.prettyTime(post.createdAt)} ago</span><p>${Gather.escapeHTML(post.text)}</p></div><div class="admin-member-actions"><button class="button button-small button-following" type="button" data-action="remove-post" data-post-id="${Gather.escapeHTML(post.id)}">Remove</button></div></article>`;
     }).join('');
     document.querySelectorAll('[data-admin-empty-posts]').forEach(empty => empty.classList.toggle('hidden', matching.length > 0));
   });
@@ -1167,3 +1170,292 @@ Gather.start({
     render();
   }
 });
+
+
+
+
+
+
+
+//fetch//
+
+const API_BASE = 'http://localhost:5039';
+
+const adminActions = new Set([
+  'dismiss-report',
+  'remove-reported-post',
+  'toggle-member-status',
+  'set-member-role',
+  'remove-member',
+  'remove-community',
+  'remove-post'
+]);
+
+function adminErrorMessage(error) {
+  return error?.message === 'Failed to fetch'
+    ? 'The server could not be reached.'
+    : (error?.message || 'Something went wrong.');
+}
+
+function showAdminError(message) {
+  const notice = document.querySelector('[data-admin-notice]');
+  if (notice) notice.textContent = message || '';
+}
+
+function setAdminAccess(allowed) {
+  document.querySelector('[data-admin-console]')?.classList.toggle('hidden', !allowed);
+  document.querySelector('[data-admin-denied]')?.classList.toggle('hidden', allowed);
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const token = Gather.api.token();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    Gather.api.clear();
+    window.location.href = 'login.html';
+    return null;
+  }
+  if (response.status === 204) return null;
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    const error = new Error(data?.message || 'Request failed.');
+    error.status = response.status;
+    throw error;
+  }
+  return data;
+}
+
+function rememberUser(user) {
+  if (!user?.id) return;
+  const index = Gather.state.users.findIndex(item => item.id === user.id);
+  if (index === -1) Gather.state.users.push(user);
+  else Gather.state.users[index] = { ...Gather.state.users[index], ...user };
+}
+
+function upsertCommunity(community) {
+  if (!community?.id) return;
+  const index = Gather.state.communities.findIndex(item => item.id === community.id);
+  if (index === -1) Gather.state.communities.unshift(community);
+  else Gather.state.communities[index] = community;
+}
+
+function closeReportsForPost(postId, status) {
+  Gather.state.reports.forEach(report => {
+    if (report.postId === postId && report.status === 'open') report.status = status;
+  });
+}
+
+function paintAdmin() {
+  const allowed = Gather.isAdmin();
+  setAdminAccess(allowed);
+  Gather.renderShell();
+  if (allowed) render();
+  Gather.applyBranding(Gather.state.site);
+}
+
+async function loadAdmin() {
+  if (!Gather.api.token()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const me = await apiFetch('/api/auth/me');
+    if (!me) return;
+    Gather.state.currentUserId = me.id;
+    Gather.state.users = [me];
+
+    if (!Gather.isAdmin()) {
+      const site = await apiFetch('/api/site');
+      if (site) Gather.state.site = { ...Gather.state.site, ...site };
+      paintAdmin();
+      return;
+    }
+
+    const [site, settings, members, posts, reports, communities, notifications] = await Promise.all([
+      apiFetch('/api/admin/site'),
+      apiFetch('/api/settings'),
+      apiFetch('/api/admin/members'),
+      apiFetch('/api/admin/posts'),
+      apiFetch('/api/admin/reports'),
+      apiFetch('/api/admin/communities'),
+      apiFetch('/api/notifications')
+    ]);
+
+    if (site) Gather.state.site = { ...Gather.state.site, ...site };
+    if (settings) Object.assign(Gather.appSettings, settings);
+    Gather.state.users = members || [];
+    rememberUser(me);
+    Gather.state.posts = posts || [];
+    Gather.state.reports = reports || [];
+    Gather.state.communities = communities || [];
+    Gather.state.notifications = notifications || [];
+    paintAdmin();
+  } catch (error) {
+    if (error.status === 403 || (Gather.state.currentUserId && !Gather.isAdmin())) {
+      setAdminAccess(false);
+      return;
+    }
+    if (Gather.isAdmin()) {
+      setAdminAccess(true);
+      showAdminError(adminErrorMessage(error));
+      return;
+    }
+    setAdminAccess(false);
+    const deniedCopy = document.querySelector('[data-admin-denied] p');
+    if (deniedCopy) deniedCopy.textContent = adminErrorMessage(error);
+  }
+}
+
+async function saveBrand(form) {
+  const preview = form.querySelector('[data-brand-preview]');
+  const notice = form.querySelector('[data-brand-notice]');
+  const site = await apiFetch('/api/admin/site', {
+    method: 'PUT',
+    body: JSON.stringify({
+      siteName: form.querySelector('[data-brand-name]')?.value.trim() || '',
+      tagline: form.querySelector('[data-brand-tagline]')?.value.trim() || '',
+      logoMark: form.querySelector('[data-brand-mark]')?.value.trim() || '',
+      footerNote: form.querySelector('[data-brand-footer]')?.value.trim() || '',
+      aboutBody: form.querySelector('[data-brand-about]')?.value.trim() || '',
+      guidelinesBody: form.querySelector('[data-brand-guidelines]')?.value.trim() || '',
+      privacyBody: form.querySelector('[data-brand-privacy]')?.value.trim() || '',
+      logoUrl: preview && !preview.hidden ? preview.src : (Gather.state.site.logoUrl || '')
+    })
+  });
+  if (!site) return;
+  Gather.state.site = { ...Gather.state.site, ...site };
+  Gather.applyBranding(Gather.state.site);
+  showAdminError('');
+  if (notice) notice.textContent = 'Brand saved.';
+}
+
+async function saveCommunity(form) {
+  const id = form.dataset.communityId;
+  if (!id) return;
+  const community = await apiFetch(`/api/admin/communities/${encodeURIComponent(id)}`, {
+    method: 'PUT',
+    body: JSON.stringify({
+      name: form.querySelector('[data-community-name]')?.value.trim() || '',
+      description: form.querySelector('[data-community-description]')?.value.trim() || '',
+      emoji: form.querySelector('[data-community-emoji]')?.value.trim() || '',
+      color: form.querySelector('[data-community-color]')?.value.trim() || ''
+    })
+  });
+  if (!community) return;
+  upsertCommunity(community);
+  render();
+  showAdminError('');
+}
+
+async function handleAdminAction(name, element) {
+  if (name === 'dismiss-report') {
+    const report = await apiFetch(`/api/admin/reports/${encodeURIComponent(element.dataset.reportId)}/dismiss`, { method: 'POST' });
+    if (!report) return;
+    const index = Gather.state.reports.findIndex(item => item.id === report.id);
+    if (index === -1) Gather.state.reports.push(report);
+    else Gather.state.reports[index] = report;
+    render();
+    return;
+  }
+
+  if (name === 'remove-reported-post') {
+    const current = Gather.state.reports.find(item => item.id === element.dataset.reportId);
+    const report = await apiFetch(`/api/admin/reports/${encodeURIComponent(element.dataset.reportId)}/remove`, { method: 'POST' });
+    if (!report) return;
+    if (current?.postId) {
+      Gather.state.posts = Gather.state.posts.filter(post => post.id !== current.postId);
+      closeReportsForPost(current.postId, 'removed');
+    }
+    const index = Gather.state.reports.findIndex(item => item.id === report.id);
+    if (index === -1) Gather.state.reports.push(report);
+    else Gather.state.reports[index] = report;
+    render();
+    return;
+  }
+
+  if (name === 'toggle-member-status') {
+    const user = await apiFetch(`/api/admin/members/${encodeURIComponent(element.dataset.userId)}/status`, { method: 'POST' });
+    if (!user) return;
+    rememberUser(user);
+    render();
+    return;
+  }
+
+  if (name === 'set-member-role') {
+    const user = await apiFetch(`/api/admin/members/${encodeURIComponent(element.dataset.userId)}/role`, {
+      method: 'PUT',
+      body: JSON.stringify({ role: element.dataset.role === 'admin' ? 'admin' : 'member' })
+    });
+    if (!user) return;
+    rememberUser(user);
+    render();
+    return;
+  }
+
+  if (name === 'remove-member') {
+    const userId = element.dataset.userId;
+    await apiFetch(`/api/admin/members/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+    Gather.state.users = Gather.state.users.filter(user => user.id !== userId);
+    render();
+    return;
+  }
+
+  if (name === 'remove-community') {
+    const communityId = element.dataset.communityId;
+    await apiFetch(`/api/admin/communities/${encodeURIComponent(communityId)}`, { method: 'DELETE' });
+    Gather.state.communities = Gather.state.communities.filter(community => community.id !== communityId);
+    const editor = document.querySelector('[data-community-editor]');
+    if (editor?.dataset.communityId === communityId) editor.hidden = true;
+    render();
+    return;
+  }
+
+  if (name === 'remove-post') {
+    const postId = element.dataset.postId;
+    await apiFetch(`/api/admin/posts/${encodeURIComponent(postId)}`, { method: 'DELETE' });
+    Gather.state.posts = Gather.state.posts.filter(post => post.id !== postId);
+    closeReportsForPost(postId, 'removed');
+    render();
+  }
+}
+
+document.addEventListener('click', event => {
+  const element = event.target.closest('[data-action]');
+  if (!element || !adminActions.has(element.dataset.action)) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (element.dataset.pending === '1') return;
+  element.dataset.pending = '1';
+  handleAdminAction(element.dataset.action, element)
+    .then(() => showAdminError(''))
+    .catch(error => showAdminError(adminErrorMessage(error)))
+    .finally(() => { delete element.dataset.pending; });
+}, true);
+
+document.addEventListener('submit', event => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement)) return;
+  if (!form.matches('[data-brand-form], [data-community-editor]')) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  const button = form.querySelector('[type="submit"]');
+  if (button?.disabled) return;
+  if (button) button.disabled = true;
+  const save = form.matches('[data-brand-form]') ? saveBrand(form) : saveCommunity(form);
+  save
+    .catch(error => {
+      const notice = form.querySelector('[data-brand-notice]');
+      const message = adminErrorMessage(error);
+      if (notice) notice.textContent = message;
+      else showAdminError(message);
+    })
+    .finally(() => { if (button) button.disabled = false; });
+}, true);
+
+loadAdmin();
