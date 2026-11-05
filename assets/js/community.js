@@ -639,7 +639,7 @@
           ...state.chats.map(thread => ({ user: userById(thread.participantId), kind: 'Chat' })),
           ...state.friends.filter(friendId => !chatIds.has(friendId)).map(friendId => ({ user: userById(friendId), kind: 'Friend' }))
         ].filter(target => target.user?.id && target.user.id !== 'someone');
-        const shareList = shareTargets.length ? `<div class="share-chat-list">${shareTargets.map(target => `<button class="share-chat" type="button" data-action="share-to-chat">${avatar(target.user)}<span class="share-chat-copy"><strong>${escapeHTML(target.user.name)}</strong><span>@${escapeHTML(target.user.username)}</span></span><span class="share-chat-kind">${target.kind}</span></button>`).join('')}</div>` : '';
+        const shareList = shareTargets.length ? `<div class="share-chat-list">${shareTargets.map(target => `<button class="share-chat" type="button" data-action="share-to-chat" data-user-id="${escapeHTML(target.user.id)}">${avatar(target.user)}<span class="share-chat-copy"><strong>${escapeHTML(target.user.name)}</strong><span>@${escapeHTML(target.user.username)}</span></span><span class="share-chat-kind">${target.kind}</span></button>`).join('')}</div>` : '';
         document.querySelector('[data-share-options]').innerHTML = `${shareList}<div class="share-platforms"><button type="button" data-action="share-copy" data-url="${escapeHTML(url)}" aria-label="Copy link"><i class="fa-regular fa-clone"></i></button><a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on Facebook"><i class="fa-brands fa-facebook"></i></a><a href="https://twitter.com/intent/tweet?url=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on X"><i class="fa-brands fa-x-twitter"></i></a><a href="https://wa.me/?text=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on WhatsApp"><i class="fa-brands fa-whatsapp"></i></a></div>`;
         document.querySelector('[data-share-notice]').textContent = '';
         document.querySelector('[data-share-url-wrap]')?.classList.add('hidden');
@@ -1130,3 +1130,376 @@ Gather.start({
     }
   }
 });
+
+
+
+
+
+
+
+//fetch//
+
+const API_BASE = 'http://localhost:5039';
+
+const communityActions = new Set([
+  'toggle-like',
+  'toggle-repost',
+  'toggle-bookmark',
+  'delete-post',
+  'delete-comment',
+  'submit-report',
+  'share-to-chat',
+  'toggle-community',
+  'send-request',
+  'submit-community',
+  'community-join',
+  'community-post'
+]);
+
+function showCommunityError(element, error) {
+  const message = error?.message === 'Failed to fetch'
+    ? 'The server could not be reached.'
+    : (error?.message || 'Something went wrong.');
+  const notice = element?.closest('form, dialog, .community-compose')?.querySelector('[data-card-art-notice], [data-community-media-notice], [role="status"]');
+  if (notice) {
+    notice.textContent = message;
+    return;
+  }
+  if (new URLSearchParams(window.location.search).has('id')) {
+    const mediaNotice = document.querySelector('[data-community-media-notice]');
+    if (mediaNotice) {
+      mediaNotice.textContent = message;
+      return;
+    }
+  }
+  document.querySelectorAll('[data-community-directory-empty] p, [data-community-empty] p').forEach(copy => {
+    copy.textContent = message;
+  });
+  document.querySelector('[data-community-directory-empty]')?.classList.remove('hidden');
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const token = Gather.api.token();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    Gather.api.clear();
+    window.location.href = 'login.html';
+    return null;
+  }
+  if (response.status === 204) return null;
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.message || 'Request failed.');
+  return data;
+}
+
+function rememberUser(user) {
+  if (!user?.id) return;
+  const index = Gather.state.users.findIndex(item => item.id === user.id);
+  if (index === -1) Gather.state.users.push(user);
+  else Gather.state.users[index] = { ...Gather.state.users[index], ...user };
+}
+
+function upsertPost(post) {
+  if (!post?.id) return;
+  const index = Gather.state.posts.findIndex(item => item.id === post.id);
+  if (index === -1) Gather.state.posts.unshift(post);
+  else Gather.state.posts[index] = post;
+}
+
+function upsertCommunity(community) {
+  if (!community?.id) return;
+  const index = Gather.state.communities.findIndex(item => item.id === community.id);
+  if (index === -1) Gather.state.communities.unshift(community);
+  else Gather.state.communities[index] = community;
+}
+
+function paintCommunity() {
+  Gather.renderShell();
+  render();
+  Gather.applyBranding(Gather.state.site);
+  document.querySelector('.request-section')?.classList.toggle('hidden', Gather.appSettings.showSuggestions === false);
+}
+
+async function refreshPost(id) {
+  if (!id) return null;
+  const post = await apiFetch(`/api/posts/${encodeURIComponent(id)}`);
+  if (post) upsertPost(post);
+  return post;
+}
+
+async function loadCommunity() {
+  if (!Gather.api.token()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const me = await apiFetch('/api/auth/me');
+    if (!me) return;
+
+    const [site, settings, users, friends, outgoing, posts, communities, notifications, chats] = await Promise.all([
+      apiFetch('/api/site'),
+      apiFetch('/api/settings'),
+      apiFetch('/api/users'),
+      apiFetch('/api/friends'),
+      apiFetch('/api/friends/requests/outgoing'),
+      apiFetch('/api/posts'),
+      apiFetch('/api/communities'),
+      apiFetch('/api/notifications'),
+      apiFetch('/api/chats')
+    ]);
+
+    Gather.state.currentUserId = me.id;
+    Gather.state.users = users || [];
+    rememberUser(me);
+    if (site) Gather.state.site = { ...Gather.state.site, ...site };
+    if (settings) Object.assign(Gather.appSettings, settings);
+    Gather.state.friends = (friends || []).map(item => item.friendId);
+    Gather.state.outgoingRequests = (outgoing || [])
+      .filter(item => item.status === 'pending')
+      .map(item => item.toUserId);
+    Gather.state.posts = posts || [];
+    Gather.state.communities = communities || [];
+    Gather.state.notifications = notifications || [];
+    Gather.state.chats = (chats || []).map(thread => ({
+      id: thread.id,
+      participantId: thread.participantId,
+      messages: thread.messages || []
+    }));
+
+    const selectedId = new URLSearchParams(window.location.search).get('id');
+    if (selectedId && !Gather.state.communities.some(community => community.id === selectedId)) {
+      const community = await apiFetch(`/api/communities/${encodeURIComponent(selectedId)}`);
+      if (community) upsertCommunity(community);
+    }
+
+    paintCommunity();
+  } catch (error) {
+    showCommunityError(null, error);
+  }
+}
+
+async function submitCommunityPost() {
+  const textInput = document.querySelector('[data-community-post-text]');
+  const text = textInput?.value.trim();
+  const notice = document.querySelector('[data-community-media-notice]');
+  const community = selectedCommunity();
+  if (!text || !community?.id) return;
+
+  const preview = document.querySelector('[data-community-media-preview] img, [data-community-media-preview] video');
+  const body = {
+    text,
+    privacy: 'communities',
+    communityId: community.id,
+    image: '',
+    video: ''
+  };
+  if (preview instanceof HTMLVideoElement) body.video = preview.src;
+  else if (preview?.src) body.image = preview.src;
+
+  const post = await apiFetch('/api/posts', { method: 'POST', body: JSON.stringify(body) });
+  if (!post) return;
+  upsertPost(post);
+  textInput.value = '';
+  Gather.clearMediaInput(
+    document.querySelector('[data-community-post-image]'),
+    '[data-community-media-preview]',
+    '[data-community-media-notice]'
+  );
+  if (notice) notice.textContent = '';
+  render();
+}
+
+async function runCommunityAction(element, work) {
+  if (element.dataset.pending === '1') return;
+  element.dataset.pending = '1';
+  try {
+    await work();
+  } catch (error) {
+    showCommunityError(element, error);
+  } finally {
+    delete element.dataset.pending;
+  }
+}
+
+async function handleCommunityAction(name, element) {
+  const postId = element.dataset.postId || element.closest('[data-post-id]')?.dataset.postId;
+
+  if (name === 'toggle-like' || name === 'toggle-repost' || name === 'toggle-bookmark') {
+    const action = name === 'toggle-like' ? 'like' : name === 'toggle-repost' ? 'repost' : 'bookmark';
+    const post = await apiFetch(`/api/posts/${encodeURIComponent(postId)}/${action}`, { method: 'POST' });
+    if (!post) return;
+    upsertPost(post);
+    render();
+    return;
+  }
+
+  if (name === 'delete-post') {
+    await apiFetch(`/api/posts/${encodeURIComponent(postId)}`, { method: 'DELETE' });
+    Gather.state.posts = Gather.state.posts.filter(post => post.id !== postId);
+    document.querySelector('[data-post-options-modal]')?.close();
+    render();
+    return;
+  }
+
+  if (name === 'delete-comment') {
+    await apiFetch(`/api/comments/${encodeURIComponent(element.dataset.commentId)}`, { method: 'DELETE' });
+    await refreshPost(postId);
+    render();
+    return;
+  }
+
+  if (name === 'submit-report') {
+    const dialog = element.closest('dialog');
+    const report = await apiFetch('/api/reports', {
+      method: 'POST',
+      body: JSON.stringify({
+        postId: dialog?.dataset.postId,
+        reason: dialog?.querySelector('[data-report-reason]')?.value || '',
+        details: dialog?.querySelector('[data-report-details]')?.value || ''
+      })
+    });
+    if (!report) return;
+    dialog?.close();
+    return;
+  }
+
+  if (name === 'share-to-chat') {
+    const dialog = element.closest('dialog');
+    const url = new URL(`home.html?post=${encodeURIComponent(dialog?.dataset.postId || '')}`, window.location.href).href;
+    const sent = await apiFetch('/api/chats/direct', {
+      method: 'POST',
+      body: JSON.stringify({ participantId: element.dataset.userId, text: url })
+    });
+    if (!sent) return;
+    const label = element.querySelector('.share-chat-kind');
+    if (label) label.textContent = 'Sent';
+    return;
+  }
+
+  if (name === 'send-request') {
+    const userId = element.dataset.userId;
+    const request = await apiFetch(`/api/friends/requests/${encodeURIComponent(userId)}`, { method: 'POST' });
+    if (!request) return;
+    if (request.status === 'pending' && !Gather.state.outgoingRequests.includes(userId)) {
+      Gather.state.outgoingRequests.push(userId);
+    }
+    Gather.renderShell();
+    return;
+  }
+
+  if (name === 'toggle-community' || name === 'community-join') {
+    const communityId = element.dataset.communityId || selectedCommunity()?.id;
+    if (!communityId) return;
+    const community = await apiFetch(`/api/communities/${encodeURIComponent(communityId)}/join`, { method: 'POST' });
+    if (!community) return;
+    upsertCommunity(community);
+    paintCommunity();
+    return;
+  }
+
+  if (name === 'submit-community') {
+    const form = element.closest('form');
+    const nameValue = form?.elements.namedItem('community-name')?.value.trim();
+    const notice = form?.querySelector('[data-card-art-notice]');
+    if (!nameValue) return;
+    const file = form.querySelector('[data-card-art-file]')?.files?.[0];
+    let banner = '';
+    if (file) {
+      try { banner = await Gather.readPhotoFile(file); }
+      catch (error) { if (notice) notice.textContent = error.message; return; }
+    }
+    const community = await apiFetch('/api/communities', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: nameValue,
+        description: form.elements.namedItem('community-description')?.value.trim() || '',
+        emoji: nameValue.slice(0, 1).toUpperCase(),
+        color: '#e1d5f0',
+        banner: banner || null
+      })
+    });
+    if (!community) return;
+    upsertCommunity(community);
+    form.reset();
+    const bannerPreview = form.querySelector('[data-card-art-banner]');
+    if (bannerPreview) {
+      bannerPreview.hidden = true;
+      bannerPreview.style.backgroundImage = '';
+    }
+    form.closest('dialog')?.close();
+    paintCommunity();
+    return;
+  }
+
+  if (name === 'community-post') {
+    await submitCommunityPost();
+  }
+}
+
+async function handleCommunitySubmit(form) {
+  const postId = form.dataset.postId || form.closest('[data-post-id]')?.dataset.postId;
+
+  if (form.matches('[data-edit-post-form]')) {
+    const text = form.elements.namedItem('edit-text')?.value.trim();
+    if (!text) return;
+    const post = await apiFetch(`/api/posts/${encodeURIComponent(postId)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ text })
+    });
+    if (!post) return;
+    upsertPost(post);
+    render();
+    return;
+  }
+
+  if (form.matches('[data-edit-comment-form]')) {
+    const text = form.elements.namedItem('edit-text')?.value.trim();
+    if (!text) return;
+    const comment = await apiFetch(`/api/comments/${encodeURIComponent(form.dataset.commentId)}`, {
+      method: 'PUT',
+      body: JSON.stringify({ text })
+    });
+    if (!comment) return;
+    await refreshPost(postId);
+    render();
+    return;
+  }
+
+  if (form.matches('[data-comment-form]')) {
+    const text = form.elements.namedItem('comment')?.value.trim();
+    if (!text || !postId) return;
+    const comment = await apiFetch(`/api/comments/post/${encodeURIComponent(postId)}`, {
+      method: 'POST',
+      body: JSON.stringify({ text, parentId: form.dataset.replyParent || null })
+    });
+    if (!comment) return;
+    await refreshPost(postId);
+    render();
+  }
+}
+
+document.addEventListener('click', event => {
+  const element = event.target.closest('[data-action]');
+  if (!element || !communityActions.has(element.dataset.action)) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  runCommunityAction(element, () => handleCommunityAction(element.dataset.action, element));
+}, true);
+
+document.addEventListener('submit', event => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement)) return;
+  if (!form.matches('[data-comment-form], [data-edit-comment-form], [data-edit-post-form]')) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  handleCommunitySubmit(form).catch(error => showCommunityError(form, error));
+}, true);
+
+loadCommunity();
+
