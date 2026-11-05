@@ -1055,3 +1055,253 @@ Gather.start({
     }
   }
 });
+
+
+
+
+
+
+
+
+//fetch//
+
+const API_BASE = 'http://localhost:5039';
+
+const settingsActions = new Set([
+  'confirm-delete-account',
+  'unblock-user'
+]);
+
+function settingsErrorMessage(error) {
+  return error?.message === 'Failed to fetch'
+    ? 'The server could not be reached.'
+    : (error?.message || 'Something went wrong.');
+}
+
+async function apiFetch(path, options = {}) {
+  const headers = new Headers(options.headers || {});
+  if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
+  const token = Gather.api.token();
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  if (response.status === 401) {
+    Gather.api.clear();
+    window.location.href = 'login.html';
+    return null;
+  }
+  if (response.status === 204) return null;
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(data?.message || 'Request failed.');
+  return data;
+}
+
+function rememberUser(user) {
+  if (!user?.id) return;
+  const index = Gather.state.users.findIndex(item => item.id === user.id);
+  if (index === -1) Gather.state.users.push(user);
+  else Gather.state.users[index] = { ...Gather.state.users[index], ...user };
+}
+
+function paintSettings() {
+  Gather.renderShell();
+  render();
+  Gather.applyBranding(Gather.state.site);
+}
+
+function settingsPayload(overrides = {}) {
+  const settings = Gather.appSettings;
+  return {
+    defaultPrivacy: overrides.defaultPrivacy ?? settings.defaultPrivacy,
+    allowRequests: overrides.allowRequests ?? settings.allowRequests,
+    showSuggestions: overrides.showSuggestions ?? settings.showSuggestions,
+    allowDms: overrides.allowDms ?? settings.allowDms,
+    notifyLikes: overrides.notifyLikes ?? settings.notifyLikes,
+    notifyReplies: overrides.notifyReplies ?? settings.notifyReplies,
+    notifyReposts: overrides.notifyReposts ?? settings.notifyReposts,
+    notifyRequests: overrides.notifyRequests ?? settings.notifyRequests,
+    notifyCommunities: overrides.notifyCommunities ?? settings.notifyCommunities,
+    theme: overrides.theme ?? settings.theme,
+    reduceMotion: overrides.reduceMotion ?? settings.reduceMotion,
+    autoplay: overrides.autoplay ?? settings.autoplay,
+    blockedUserIds: settings.blockedUserIds || []
+  };
+}
+
+async function loadSettings() {
+  if (!Gather.api.token()) {
+    window.location.href = 'login.html';
+    return;
+  }
+
+  try {
+    const me = await apiFetch('/api/auth/me');
+    if (!me) return;
+
+    const [site, settings, users, friends, outgoing, communities, notifications] = await Promise.all([
+      apiFetch('/api/site'),
+      apiFetch('/api/settings'),
+      apiFetch('/api/users'),
+      apiFetch('/api/friends'),
+      apiFetch('/api/friends/requests/outgoing'),
+      apiFetch('/api/communities'),
+      apiFetch('/api/notifications')
+    ]);
+
+    Gather.state.currentUserId = me.id;
+    Gather.state.users = users || [];
+    rememberUser(me);
+    if (site) Gather.state.site = { ...Gather.state.site, ...site };
+    if (settings) Object.assign(Gather.appSettings, settings);
+    Gather.state.friends = (friends || []).map(item => item.friendId);
+    Gather.state.outgoingRequests = (outgoing || [])
+      .filter(item => item.status === 'pending')
+      .map(item => item.toUserId);
+    Gather.state.communities = communities || [];
+    Gather.state.notifications = notifications || [];
+    paintSettings();
+  } catch (error) {
+    const notice = document.querySelector('[data-settings-notice="account"]');
+    if (notice) {
+      notice.textContent = settingsErrorMessage(error);
+      notice.classList.add('is-error');
+    }
+  }
+}
+
+async function saveAccount(form) {
+  const password = form.elements.namedItem('password')?.value || '';
+  const confirm = form.elements.namedItem('password-confirm')?.value || '';
+  if (password !== confirm) {
+    showNotice('account', 'Passwords do not match.', true);
+    return;
+  }
+
+  const body = {
+    name: form.elements.namedItem('name')?.value.trim() || '',
+    username: form.elements.namedItem('username')?.value.trim() || '',
+    email: form.elements.namedItem('email')?.value.trim() || '',
+    location: form.elements.namedItem('location')?.value.trim() || ''
+  };
+  if (password) body.password = password;
+
+  const user = await apiFetch('/api/auth/me', { method: 'PUT', body: JSON.stringify(body) });
+  if (!user) return;
+  rememberUser(user);
+  Gather.state.currentUserId = user.id;
+  form.elements.namedItem('password').value = '';
+  form.elements.namedItem('password-confirm').value = '';
+  paintSettings();
+  showNotice('account', 'Account saved.');
+}
+
+async function savePrivacy(form) {
+  const settings = await apiFetch('/api/settings', {
+    method: 'PUT',
+    body: JSON.stringify(settingsPayload({
+      defaultPrivacy: form.querySelector('[data-settings-default-privacy]')?.value || 'public',
+      allowRequests: !!form.querySelector('[data-settings-allow-requests]')?.checked,
+      showSuggestions: !!form.querySelector('[data-settings-show-suggestions]')?.checked,
+      allowDms: !!form.querySelector('[data-settings-allow-dms]')?.checked
+    }))
+  });
+  if (!settings) return;
+  Object.assign(Gather.appSettings, settings);
+  paintSettings();
+  showNotice('privacy', 'Privacy saved.');
+}
+
+async function saveNotifications(form) {
+  const settings = await apiFetch('/api/settings', {
+    method: 'PUT',
+    body: JSON.stringify(settingsPayload({
+      notifyLikes: !!form.querySelector('[data-settings-notify-likes]')?.checked,
+      notifyReplies: !!form.querySelector('[data-settings-notify-replies]')?.checked,
+      notifyReposts: !!form.querySelector('[data-settings-notify-reposts]')?.checked,
+      notifyRequests: !!form.querySelector('[data-settings-notify-requests]')?.checked,
+      notifyCommunities: !!form.querySelector('[data-settings-notify-communities]')?.checked
+    }))
+  });
+  if (!settings) return;
+  Object.assign(Gather.appSettings, settings);
+  paintSettings();
+  showNotice('notifications-pref', 'Notification preferences saved.');
+}
+
+async function saveAppearance(form) {
+  const settings = await apiFetch('/api/settings', {
+    method: 'PUT',
+    body: JSON.stringify(settingsPayload({
+      theme: form.querySelector('[data-settings-theme]:checked')?.value || 'system',
+      reduceMotion: !!form.querySelector('[data-settings-reduce-motion]')?.checked,
+      autoplay: !!form.querySelector('[data-settings-autoplay]')?.checked
+    }))
+  });
+  if (!settings) return;
+  Object.assign(Gather.appSettings, settings);
+  paintSettings();
+  showNotice('appearance', 'Appearance saved.');
+}
+
+async function saveSettingsForm(form) {
+  const button = form.querySelector('[type="submit"]');
+  if (button?.disabled) return;
+  if (button) button.disabled = true;
+  try {
+    if (form.dataset.settingsForm === 'account') await saveAccount(form);
+    else if (form.dataset.settingsForm === 'privacy') await savePrivacy(form);
+    else if (form.dataset.settingsForm === 'notifications-pref') await saveNotifications(form);
+    else if (form.dataset.settingsForm === 'appearance') await saveAppearance(form);
+  } catch (error) {
+    showNotice(form.dataset.settingsForm, settingsErrorMessage(error), true);
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+async function handleSettingsAction(name, element) {
+  if (name === 'unblock-user') {
+    const userId = element.dataset.userId;
+    if (!userId) return;
+    const settings = await apiFetch(`/api/settings/blocked/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+    if (!settings) return;
+    Object.assign(Gather.appSettings, settings);
+    render();
+    showNotice('privacy', 'Account unblocked.');
+    return;
+  }
+
+  if (name === 'confirm-delete-account') {
+    await apiFetch('/api/auth/me', { method: 'DELETE' });
+    document.querySelector('[data-delete-modal]')?.close();
+    Gather.api.clear();
+    window.location.href = 'login.html';
+  }
+}
+
+document.addEventListener('click', event => {
+  const element = event.target.closest('[data-action]');
+  if (!element || !settingsActions.has(element.dataset.action)) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  if (element.dataset.pending === '1') return;
+  element.dataset.pending = '1';
+  handleSettingsAction(element.dataset.action, element)
+    .catch(error => {
+      document.querySelector('[data-delete-modal]')?.close();
+      showNotice(element.dataset.action === 'unblock-user' ? 'privacy' : 'account', settingsErrorMessage(error), true);
+    })
+    .finally(() => { delete element.dataset.pending; });
+}, true);
+
+document.addEventListener('submit', event => {
+  const form = event.target;
+  if (!(form instanceof HTMLFormElement) || !form.matches('[data-settings-form]')) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  saveSettingsForm(form);
+}, true);
+
+loadSettings();
+
