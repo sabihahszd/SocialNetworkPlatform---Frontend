@@ -1004,11 +1004,19 @@ async function submitRegister(form) {
     }
   }
 
+  const password = form.elements.namedItem('password')?.value || '';
+  const confirmPassword = form.elements.namedItem('confirmPassword')?.value || '';
+  if (password !== confirmPassword) {
+    if (notice) notice.textContent = 'Passwords do not match.';
+    return;
+  }
+
   const body = {
     fullName: form.elements.namedItem('fullName')?.value.trim() || '',
     email: form.elements.namedItem('email')?.value.trim() || '',
     username: form.elements.namedItem('username')?.value.trim() || '',
-    password: form.elements.namedItem('password')?.value || '',
+    password,
+    confirmPassword,
     bio: form.elements.namedItem('bio')?.value.trim() || null,
     location: form.elements.namedItem('location')?.value.trim() || null,
     photo: photo || null
@@ -1033,6 +1041,45 @@ async function submitRegister(form) {
     if (button) button.disabled = false;
   }
 }
+
+function setPasswordVisible(button, visible) {
+  const input = button.closest('.password-field')?.querySelector('input');
+  const icon = button.querySelector('i');
+  if (!(input instanceof HTMLInputElement)) return;
+  input.type = visible ? 'text' : 'password';
+  button.setAttribute('aria-pressed', String(visible));
+  button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+  icon?.classList.toggle('fa-eye', !visible);
+  icon?.classList.toggle('fa-eye-slash', visible);
+}
+
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-password-toggle]');
+  if (!(button instanceof HTMLButtonElement)) return;
+  setPasswordVisible(button, button.getAttribute('aria-pressed') !== 'true');
+});
+
+document.addEventListener('input', event => {
+  const input = event.target;
+  const form = input instanceof HTMLInputElement ? input.form : null;
+  if (!form || form.dataset.authForm !== 'register') return;
+  if (input.name !== 'password' && input.name !== 'confirmPassword') return;
+  const password = form.elements.namedItem('password');
+  const confirm = form.elements.namedItem('confirmPassword');
+  if (!(password instanceof HTMLInputElement) || !(confirm instanceof HTMLInputElement)) return;
+  confirm.setCustomValidity(
+    confirm.value && password.value !== confirm.value ? 'Passwords do not match.' : ''
+  );
+});
+
+document.addEventListener('invalid', event => {
+  const input = event.target;
+  if (!(input instanceof HTMLInputElement) || input.name !== 'confirmPassword') return;
+  const form = input.form;
+  if (!form || form.dataset.authForm !== 'register') return;
+  const notice = form.querySelector('[data-auth-notice]');
+  if (notice) notice.textContent = input.validationMessage;
+}, true);
 
 document.addEventListener('submit', event => {
   const form = event.target;
