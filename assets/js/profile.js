@@ -14,9 +14,9 @@
     reports: [],
     chats: [],
     site: {
-      siteName: '',
+      siteName: 'gather',
       tagline: '',
-      logoMark: '',
+      logoMark: 'g',
       logoUrl: '',
       footerNote: '',
       aboutBody: '',
@@ -147,8 +147,8 @@
   function applyBranding(site) {
     if (!site) return;
     state.site = { ...state.site, ...site };
-    const name = site.siteName || '';
-    const mark = (site.logoMark || name.charAt(0) || '').slice(0, 2);
+    const name = site.siteName || 'gather';
+    const mark = (site.logoMark || name.charAt(0) || 'g').slice(0, 2);
     const logo = site.logoUrl ? safePhoto(site.logoUrl) : '';
     document.querySelectorAll('.brand').forEach(node => {
       const badge = node.querySelector('.brand-mark');
@@ -1078,6 +1078,12 @@ function render() {
   const cover = document.querySelector('.profile-cover');
   if (cover) cover.style.backgroundImage = user.banner ? `linear-gradient(0deg, rgba(25, 53, 39, .13), transparent), url("${Gather.safePhoto(user.banner)}")` : '';
   document.querySelectorAll('[data-profile-location]').forEach(node => { node.textContent = user.location ? `⌖ ${user.location}` : '⌖ Add a location'; });
+  document.querySelectorAll('[data-profile-joined]').forEach(node => {
+    const joined = user.createdAt ? new Date(user.createdAt) : null;
+    node.textContent = joined && !Number.isNaN(joined.getTime()) && joined.getFullYear() > 1
+      ? `Joined ${joined.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}`
+      : '';
+  });
   document.querySelectorAll('[data-following-total]').forEach(node => { node.textContent = Gather.state.following.length; });
   document.querySelectorAll('[data-followers-total]').forEach(node => { node.textContent = Gather.state.followers.length; });
   document.querySelectorAll('[data-friends-total]').forEach(node => { node.textContent = Gather.state.friends.length; });
@@ -1294,10 +1300,16 @@ function upsertPost(post) {
   else Gather.state.posts[index] = post;
 }
 
+function rememberSite(site) {
+  if (!site) return;
+  Gather.state.site = { ...Gather.state.site, ...site };
+  Gather.applyBranding(Gather.state.site);
+}
+
 function paintProfile() {
+  Gather.applyBranding(Gather.state.site);
   Gather.renderShell();
   render();
-  Gather.applyBranding(Gather.state.site);
 }
 
 async function refreshPost(id) {
@@ -1320,23 +1332,26 @@ async function loadProfile() {
     rememberUser(me);
     Gather.renderShell();
 
-    const [site, settings, users, friends, posts, communities, notifications, chats] = await Promise.all([
-      apiFetch('/api/site'),
+    const [site, settings, users, friends, posts, communities, notifications, chats, follows] = await Promise.all([
+      apiFetch('/api/site').then(value => { rememberSite(value); return value; }),
       apiFetch('/api/settings'),
       apiFetch('/api/users'),
-      apiFetch('/api/friends'),
-      apiFetch('/api/posts'),
-      apiFetch('/api/communities'),
-      apiFetch('/api/notifications'),
-      apiFetch('/api/chats')
+      apiFetch('/api/friends').catch(() => []),
+      apiFetch('/api/posts').catch(() => []),
+      apiFetch('/api/communities').catch(() => []),
+      apiFetch('/api/notifications').catch(() => []),
+      apiFetch('/api/chats').catch(() => []),
+      apiFetch('/api/follows').catch(() => ({ following: [], followers: [] }))
     ]);
 
     Gather.state.currentUserId = me.id;
     Gather.state.users = users || [];
     rememberUser(me);
-    if (site) Gather.state.site = { ...Gather.state.site, ...site };
+    rememberSite(site);
     if (settings) Object.assign(Gather.appSettings, settings);
     Gather.state.friends = (friends || []).map(item => item.friendId);
+    Gather.state.following = follows?.following || [];
+    Gather.state.followers = follows?.followers || [];
     Gather.state.posts = posts || [];
     Gather.state.communities = communities || [];
     Gather.state.notifications = notifications || [];
@@ -1347,6 +1362,7 @@ async function loadProfile() {
     }));
     paintProfile();
   } catch (error) {
+    Gather.applyBranding(Gather.state.site);
     showProfileError(null, error);
   }
 }

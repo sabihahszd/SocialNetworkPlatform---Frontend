@@ -14,9 +14,9 @@
     reports: [],
     chats: [],
     site: {
-      siteName: '',
+      siteName: 'gather',
       tagline: '',
-      logoMark: '',
+      logoMark: 'g',
       logoUrl: '',
       footerNote: '',
       aboutBody: '',
@@ -147,8 +147,8 @@
   function applyBranding(site) {
     if (!site) return;
     state.site = { ...state.site, ...site };
-    const name = site.siteName || '';
-    const mark = (site.logoMark || name.charAt(0) || '').slice(0, 2);
+    const name = site.siteName || 'gather';
+    const mark = (site.logoMark || name.charAt(0) || 'g').slice(0, 2);
     const logo = site.logoUrl ? safePhoto(site.logoUrl) : '';
     document.querySelectorAll('.brand').forEach(node => {
       const badge = node.querySelector('.brand-mark');
@@ -1266,10 +1266,16 @@ function upsertCommunity(community) {
   else Gather.state.communities[index] = community;
 }
 
+function rememberSite(site) {
+  if (!site) return;
+  Gather.state.site = { ...Gather.state.site, ...site };
+  Gather.applyBranding(Gather.state.site);
+}
+
 function paintCommunity() {
+  Gather.applyBranding(Gather.state.site);
   Gather.renderShell();
   render();
-  Gather.applyBranding(Gather.state.site);
   document.querySelector('.request-section')?.classList.toggle('hidden', Gather.appSettings.showSuggestions === false);
 }
 
@@ -1294,21 +1300,21 @@ async function loadCommunity() {
     Gather.renderShell();
 
     const [site, settings, users, friends, outgoing, posts, communities, notifications, chats] = await Promise.all([
-      apiFetch('/api/site'),
+      apiFetch('/api/site').then(value => { rememberSite(value); return value; }),
       apiFetch('/api/settings'),
       apiFetch('/api/users'),
-      apiFetch('/api/friends'),
+      apiFetch('/api/friends').catch(() => []),
       apiFetch('/api/friends/requests/outgoing').catch(() => []),
-      apiFetch('/api/posts'),
-      apiFetch('/api/communities'),
-      apiFetch('/api/notifications'),
-      apiFetch('/api/chats')
+      apiFetch('/api/posts').catch(() => []),
+      apiFetch('/api/communities').catch(() => []),
+      apiFetch('/api/notifications').catch(() => []),
+      apiFetch('/api/chats').catch(() => [])
     ]);
 
     Gather.state.currentUserId = me.id;
     Gather.state.users = users || [];
     rememberUser(me);
-    if (site) Gather.state.site = { ...Gather.state.site, ...site };
+    rememberSite(site);
     if (settings) Object.assign(Gather.appSettings, settings);
     Gather.state.friends = (friends || []).map(item => item.friendId);
     Gather.state.outgoingRequests = (outgoing || [])
@@ -1331,6 +1337,7 @@ async function loadCommunity() {
 
     paintCommunity();
   } catch (error) {
+    Gather.applyBranding(Gather.state.site);
     showCommunityError(null, error);
   }
 }
