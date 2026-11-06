@@ -49,11 +49,21 @@
     clear: () => localStorage.removeItem(TOKEN_KEY)
   };
 
-  const currentUser = () => state.users.find(user => user.id === state.currentUserId) || state.users[0];
-  const isAdmin = () => ['admin', 'superadmin'].includes(currentUser()?.role);
+  const currentUser = () => state.users.find(user => user.id === state.currentUserId) || (state.currentUserId ? null : state.users[0]);
+  const isAdmin = () => ['admin', 'superadmin'].includes(String(currentUser()?.role || '').trim().toLowerCase());
   const isSuperAdmin = () => currentUser()?.role === 'superadmin';
   const userById = id => state.users.find(user => user.id === id) || { id: 'someone', name: 'Someone', username: 'someone', photo: '', tone: '' };
-  const isCommunityMember = community => !!community?.memberIds?.includes(state.currentUserId);
+  const postAuthor = post => {
+    const lookedUp = userById(post?.authorId);
+    return {
+      ...lookedUp,
+      id: post?.authorId || lookedUp.id,
+      name: post?.authorName || lookedUp.name,
+      username: post?.authorUsername || lookedUp.username,
+      photo: post?.authorPhoto || lookedUp.photo
+    };
+  };
+  const isCommunityMember = community => !!community && (community.ownerId === state.currentUserId || community.joined === true || !!community.memberIds?.includes(state.currentUserId));
   const communityUrl = id => `community.html?id=${encodeURIComponent(id)}`;
   const isFriend = id => state.friends.includes(id);
   const isPending = id => state.outgoingRequests.includes(id);
@@ -69,7 +79,7 @@
   };
   const safePhoto = value => /^data:image\/[\w.+-]+;base64,/i.test(value || '') ? value : safeImage(value);
   const safeMediaSource = value => /^data:(?:image|video)\/[\w.+-]+;base64,/i.test(value || '') ? value : safeImage(value);
-  const avatar = (user, extraClass = '') => `<span class="avatar ${escapeHTML(user.tone || '')} ${extraClass}">${user.photo ? `<img src="${escapeHTML(safePhoto(user.photo))}" alt="">` : escapeHTML((user.name || 'M').slice(0, 1).toUpperCase())}</span>`;
+  const avatar = (user, extraClass = '') => { const photo = safePhoto(user?.photo); return `<span class="avatar ${escapeHTML(user?.tone || '')} ${extraClass}">${photo ? `<img src="${escapeHTML(photo)}" alt="">` : escapeHTML((user?.name || 'M').slice(0, 1).toUpperCase())}</span>`; };
   const memberCount = value => Number(value || 0).toLocaleString();
   const prettyTime = date => {
     const minutes = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 60000));
@@ -215,16 +225,20 @@
       settingsLink.classList.add('settings-nav-link');
       settingsLink.classList.toggle('active', page === 'settings');
 
-      let adminLink = nav.querySelector('.admin-nav-link');
-      if (!isAdmin()) adminLink?.remove();
+      let adminLink = nav.querySelector('.admin-nav-link, a[href="admin.html"]');
+      if (!state.currentUserId) adminLink?.classList.add('hidden');
+      else if (!isAdmin()) adminLink?.remove();
       else {
         if (!adminLink) {
           adminLink = document.createElement('a');
           adminLink.className = 'nav-link admin-nav-link';
           adminLink.href = 'admin.html';
           adminLink.innerHTML = '<span class="nav-icon"><i class="fa-solid fa-shield-halved"></i></span>Admin';
-          nav.append(adminLink);
+          const settingsLink = nav.querySelector('a[href="settings.html"]');
+          if (settingsLink) settingsLink.after(adminLink);
+          else nav.append(adminLink);
         }
+        adminLink.classList.remove('hidden');
         adminLink.classList.toggle('active', page === 'admin');
       }
     });
@@ -265,8 +279,9 @@
       ensureMobileLink('chats.html', 'chats-mobile-link', '<i class="fa-regular fa-comments"></i>', 'Chats', page === 'chats');
       ensureMobileLink('bookmarks.html', 'bookmarks-mobile-link', '<i class="fa-regular fa-bookmark"></i>', 'Bookmarks', page === 'bookmarks');
 
-      let adminLink = nav.querySelector('.admin-mobile-link');
-      if (!isAdmin()) adminLink?.remove();
+      let adminLink = nav.querySelector('.admin-mobile-link, a[href="admin.html"]');
+      if (!state.currentUserId) adminLink?.classList.add('hidden');
+      else if (!isAdmin()) adminLink?.remove();
       else {
         if (!adminLink) {
           adminLink = document.createElement('a');
@@ -276,6 +291,7 @@
           adminLink.innerHTML = '<i class="fa-solid fa-shield-halved"></i>';
           nav.append(adminLink);
         }
+        adminLink.classList.remove('hidden');
         adminLink.classList.toggle('active', page === 'admin');
       }
     });
@@ -289,12 +305,14 @@
   function renderIdentity() {
     const user = currentUser();
     if (!user) return;
-    document.querySelectorAll('.mini-profile .avatar, .composer > .avatar').forEach(node => {
-      node.innerHTML = user.photo ? `<img src="${escapeHTML(safePhoto(user.photo))}" alt="">` : escapeHTML(user.name.slice(0, 1).toUpperCase());
-      node.setAttribute('aria-label', user.name);
+    const photo = safePhoto(user.photo);
+    const letter = escapeHTML((user.name || 'M').slice(0, 1).toUpperCase());
+    document.querySelectorAll('.mini-profile .avatar, .composer > .avatar, [data-current-avatar]').forEach(node => {
+      node.innerHTML = photo ? `<img src="${escapeHTML(photo)}" alt="">` : letter;
+      node.setAttribute('aria-label', user.name || 'Profile');
     });
-    document.querySelectorAll('.profile-summary strong').forEach(node => { node.textContent = user.name; });
-    document.querySelectorAll('.profile-summary span').forEach(node => { node.textContent = `@${user.username}`; });
+    document.querySelectorAll('.profile-summary strong, .composer-identity strong').forEach(node => { node.textContent = user.name || ''; });
+    document.querySelectorAll('.profile-summary span, .composer-identity span').forEach(node => { node.textContent = user.username ? `@${user.username}` : ''; });
   }
 
   function renderCircles() {
@@ -304,11 +322,11 @@
     document.querySelectorAll('[data-trending-circles]').forEach(container => {
       container.innerHTML = state.communities.slice().sort((a, b) => b.members - a.members).slice(0, 3).map(circle => {
         const art = circle.banner ? `linear-gradient(0deg, rgba(25, 53, 39, .13), transparent), url('${escapeHTML(circle.banner)}')` : 'none';
-        return `<div class="trend-item"><a class="trend-stamp" href="${communityUrl(circle.id)}" style="--stamp:${escapeHTML(circle.color)};background-image:${art}" aria-label="Open ${escapeHTML(circle.name)}"></a><div class="trend-copy"><a href="${communityUrl(circle.id)}"><strong>${escapeHTML(circle.name)}</strong></a><span>${memberCount(circle.members)} members</span></div><button class="trend-join" data-action="toggle-community" data-community-id="${escapeHTML(circle.id)}">${isCommunityMember(circle) ? 'Joined' : 'Join'}</button></div>`;
+        return `<div class="trend-item"><a class="trend-stamp" href="${communityUrl(circle.id)}" style="--stamp:${escapeHTML(circle.color)};background-image:${art}" aria-label="Open ${escapeHTML(circle.name)}"></a><div class="trend-copy"><a href="${communityUrl(circle.id)}"><strong>${escapeHTML(circle.name)}</strong></a><span>${memberCount(circle.members)} members</span></div><button class="trend-join" data-action="toggle-community" data-community-id="${escapeHTML(circle.id)}"${circle.ownerId === state.currentUserId ? ' disabled' : ''}>${circle.ownerId === state.currentUserId ? 'Creator' : (isCommunityMember(circle) ? 'Joined' : 'Join')}</button></div>`;
       }).join('');
     });
     document.querySelectorAll('[data-community-grid]').forEach(container => {
-      container.innerHTML = state.communities.slice().sort((a, b) => b.members - a.members).map(circle => `<article class="community-card" style="--community-bg:${escapeHTML(circle.color)}"><a class="trend-stamp" href="${communityUrl(circle.id)}" style="--stamp:rgba(255,255,255,.7)" aria-label="Open ${escapeHTML(circle.name)}">${escapeHTML(circle.emoji)}</a><a class="community-card-title" href="${communityUrl(circle.id)}"><h3>${escapeHTML(circle.name)}</h3></a><p>${escapeHTML(circle.description)}</p><div class="community-card-foot"><span>${memberCount(circle.members)} members</span><button class="button button-small ${isCommunityMember(circle) ? 'button-following' : 'button-primary'}" data-action="toggle-community" data-community-id="${escapeHTML(circle.id)}">${isCommunityMember(circle) ? 'Joined' : 'Join community'}</button></div></article>`).join('');
+      container.innerHTML = state.communities.slice().sort((a, b) => b.members - a.members).map(circle => `<article class="community-card" style="--community-bg:${escapeHTML(circle.color)}"><a class="trend-stamp" href="${communityUrl(circle.id)}" style="--stamp:rgba(255,255,255,.7)" aria-label="Open ${escapeHTML(circle.name)}">${escapeHTML(circle.emoji)}</a><a class="community-card-title" href="${communityUrl(circle.id)}"><h3>${escapeHTML(circle.name)}</h3></a><p>${escapeHTML(circle.description)}</p><div class="community-card-foot"><span>${memberCount(circle.members)} members</span><button class="button button-small ${isCommunityMember(circle) ? 'button-following' : 'button-primary'}" data-action="toggle-community" data-community-id="${escapeHTML(circle.id)}"${circle.ownerId === state.currentUserId ? ' disabled' : ''}>${circle.ownerId === state.currentUserId ? 'Creator' : (isCommunityMember(circle) ? 'Joined' : 'Join community')}</button></div></article>`).join('');
     });
   }
 
@@ -363,7 +381,7 @@
   }
 
   function renderPost(post, { readOnly = false } = {}) {
-    const author = userById(post.authorId);
+    const author = postAuthor(post);
     const likes = post.likes || [];
     const reposts = post.reposts || [];
     const bookmarks = post.bookmarks || [];
@@ -1075,6 +1093,9 @@ async function loadNotifications() {
   try {
     const me = await apiFetch('/api/auth/me');
     if (!me) return;
+    Gather.state.currentUserId = me.id;
+    rememberUser(me);
+    Gather.renderShell();
 
     const [site, settings, users, communities, notifications] = await Promise.all([
       apiFetch('/api/site'),

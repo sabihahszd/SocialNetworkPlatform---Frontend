@@ -44,6 +44,7 @@
                         data-notification-count></span></a><a class="nav-link" href="profile.html"><span
                         class="nav-icon"><i class="fa-regular fa-user"></i></span>Profile</a><a class="nav-link"
                     href="settings.html"><span class="nav-icon"><i class="fa-solid fa-gear"></i></span>Settings</a>
+                <a class="nav-link admin-nav-link hidden" href="admin.html"><span class="nav-icon"><i class="fa-solid fa-shield-halved"></i></span>Admin</a>
             </nav>
             <div class="rail-divider"></div>
             <div class="rail-bottom">
@@ -109,9 +110,9 @@
                         data-community-feed="members">Members</button><button class="feed-tab"
                         data-community-feed="about">About</button></div>
                 <section class="community-compose" data-community-compose>
-                    <div class="community-compose-prompt"><span class="avatar" data-current-avatar></span><textarea
+                    <div class="community-compose-prompt"><span class="avatar" data-current-avatar></span><div class="community-compose-copy"><a class="composer-identity" href="profile.html"><strong></strong><span></span></a><textarea
                             data-community-post-text rows="2" placeholder="Share something with the community..."
-                            aria-label="Write a community post"></textarea></div>
+                            aria-label="Write a community post"></textarea></div></div>
                     <div class="community-compose-actions"><label class="icon-button community-image-field"
                             title="Choose a photo or video"><i class="fa-solid fa-image"></i><input type="file"
                                 accept="image/*,video/*" data-community-post-image

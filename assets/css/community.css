@@ -2640,6 +2640,29 @@ body[data-page='community'] .community-main {
     height: 33px;
 }
 
+.community-compose-copy {
+    min-width: 0;
+    flex: 1;
+}
+
+.composer-identity {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    margin-bottom: 2px;
+    color: inherit;
+}
+
+.composer-identity strong {
+    font-size: 13px;
+}
+
+.composer-identity span {
+    color: var(--muted);
+    font-size: 11px;
+}
+
 .community-compose-prompt textarea {
     min-width: 0;
     flex: 1;

@@ -495,6 +495,23 @@ select:focus-visible {
     flex: 1;
 }
 
+.composer-identity {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    min-width: 0;
+    color: inherit;
+}
+
+.composer-identity strong {
+    font-size: 14px;
+}
+
+.composer-identity span {
+    color: var(--muted);
+    font-size: 12px;
+}
+
 .composer textarea {
     width: 100%;
     min-height: 52px;
