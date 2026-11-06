@@ -1040,10 +1040,98 @@ async function submitLogin(form) {
 
 document.addEventListener('submit', event => {
   const form = event.target;
-  if (!(form instanceof HTMLFormElement) || form.dataset.authForm !== 'login') return;
+  if (!(form instanceof HTMLFormElement)) return;
+  if (form.dataset.authForm === 'login') {
+    event.preventDefault();
+    submitLogin(form);
+    return;
+  }
+  if (form.dataset.authForm !== 'reset') return;
   event.preventDefault();
-  submitLogin(form);
+  const confirm = form.querySelector('[data-reset-confirm]');
+  if (confirm?.classList.contains('hidden')) sendResetCode(form);
+  else submitReset(form);
 });
+
+document.addEventListener('click', event => {
+  const action = event.target.closest('[data-action]')?.dataset.action;
+  if (action === 'forgot-password') showReset();
+  if (action === 'cancel-reset') showLogin();
+  if (action === 'send-reset-code') {
+    const form = event.target.closest('form');
+    if (form instanceof HTMLFormElement) sendResetCode(form);
+  }
+});
+
+function showReset() {
+  document.querySelector('[data-auth-form="login"]')?.classList.add('hidden');
+  const reset = document.querySelector('[data-auth-form="reset"]');
+  reset?.classList.remove('hidden');
+  reset?.querySelector('[name="email"]')?.focus();
+}
+
+function showLogin(message) {
+  const login = document.querySelector('[data-auth-form="login"]');
+  const reset = document.querySelector('[data-auth-form="reset"]');
+  login?.classList.remove('hidden');
+  reset?.classList.add('hidden');
+  reset?.querySelector('[data-reset-confirm]')?.classList.add('hidden');
+  const notice = login?.querySelector('[data-auth-notice]');
+  if (notice && message) notice.textContent = message;
+}
+
+function resetErrorMessage(error, fallback) {
+  if (error?.message === 'Failed to fetch') return 'The server could not be reached.';
+  return error?.message || fallback;
+}
+
+async function sendResetCode(form) {
+  const notice = form.querySelector('[data-reset-notice]');
+  const button = form.querySelector('[data-action="send-reset-code"]');
+  const email = form.elements.namedItem('email');
+  if (!(email instanceof HTMLInputElement) || !email.reportValidity()) return;
+  if (button) button.disabled = true;
+  if (notice) notice.textContent = '';
+  try {
+    const result = await apiFetch('/api/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.value.trim() })
+    });
+    form.querySelector('[data-reset-confirm]')?.classList.remove('hidden');
+    if (notice) notice.textContent = result?.message || 'We sent a verification code to that email.';
+    form.querySelector('[name="code"]')?.focus();
+  } catch (error) {
+    if (notice) notice.textContent = resetErrorMessage(error, 'The verification code could not be sent.');
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+async function submitReset(form) {
+  const notice = form.querySelector('[data-reset-notice]');
+  const button = form.querySelector('[type="submit"]');
+  const email = form.elements.namedItem('email')?.value.trim() || '';
+  const code = form.elements.namedItem('code')?.value.trim() || '';
+  const password = form.elements.namedItem('password')?.value || '';
+  const confirm = form.elements.namedItem('confirmPassword')?.value || '';
+  if (password !== confirm) {
+    if (notice) notice.textContent = 'Passwords do not match.';
+    return;
+  }
+  if (button) button.disabled = true;
+  if (notice) notice.textContent = '';
+  try {
+    const result = await apiFetch('/api/auth/reset-password', {
+      method: 'POST',
+      body: JSON.stringify({ email, code, password, confirmPassword: confirm })
+    });
+    form.reset();
+    showLogin(result?.message || 'Your password has been updated. Sign in with it.');
+  } catch (error) {
+    if (notice) notice.textContent = resetErrorMessage(error, 'The password could not be updated.');
+    if (button) button.disabled = false;
+  }
+}
 
 function setPasswordVisible(button, visible) {
   const input = button.closest('.password-field')?.querySelector('input');

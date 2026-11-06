@@ -28,9 +28,30 @@
                     class="field-label">Password<span class="password-field"><input name="password" type="password" required
                         autocomplete="current-password" placeholder="Your password"><button class="password-toggle"
                         type="button" data-password-toggle aria-label="Show password" aria-pressed="false"><i
-                            class="fa-regular fa-eye" aria-hidden="true"></i></button></span></label><button
-                    class="button button-primary button-wide" type="submit">Come on in <span>→</span></button>
+                            class="fa-regular fa-eye" aria-hidden="true"></i></button></span></label>
+                <p class="auth-forgot"><button type="button" data-action="forgot-password">Forgot your password?</button></p>
+                <button class="button button-primary button-wide" type="submit">Come on in <span>→</span></button>
                 <p class="auth-notice" data-auth-notice role="status"></p>
+            </form>
+            <form class="auth-form hidden" data-auth-form="reset">
+                <label class="field-label">Email<input name="email" type="email" required autocomplete="email"
+                        placeholder="you@example.com"></label>
+                <button class="button button-secondary button-wide" type="button" data-action="send-reset-code">Send verification code</button>
+                <div class="reset-confirm hidden" data-reset-confirm>
+                    <label class="field-label">Verification code<input name="code" inputmode="numeric" maxlength="6"
+                            autocomplete="one-time-code" placeholder="6-digit code"></label>
+                    <label class="field-label">New password<span class="password-field"><input name="password" type="password"
+                            minlength="6" autocomplete="new-password" placeholder="At least 6 characters"><button
+                            class="password-toggle" type="button" data-password-toggle aria-label="Show password"
+                            aria-pressed="false"><i class="fa-regular fa-eye" aria-hidden="true"></i></button></span></label>
+                    <label class="field-label">Confirm password<span class="password-field"><input name="confirmPassword"
+                            type="password" minlength="6" autocomplete="new-password" placeholder="Repeat your new password"><button
+                            class="password-toggle" type="button" data-password-toggle aria-label="Show password"
+                            aria-pressed="false"><i class="fa-regular fa-eye" aria-hidden="true"></i></button></span></label>
+                    <button class="button button-primary button-wide" type="submit">Save new password</button>
+                </div>
+                <p class="auth-notice" data-reset-notice role="status"></p>
+                <p class="auth-forgot"><button type="button" data-action="cancel-reset">Back to sign in</button></p>
             </form>
             <p class="auth-switch">New around here? <a href="register.html">Make an account</a></p>
         </section>

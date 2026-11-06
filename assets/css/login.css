@@ -1689,6 +1689,32 @@ select:focus-visible {
     outline-offset: -3px;
 }
 
+.auth-forgot {
+    margin: 2px 0 8px;
+    text-align: right;
+}
+
+.auth-forgot button {
+    padding: 0;
+    border: 0;
+    color: var(--forest);
+    background: transparent;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.auth-forgot button:hover {
+    text-decoration: underline;
+}
+
+.reset-confirm {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+}
+
 .auth-notice {
     min-height: 16px;
     margin: -5px 0 0;
