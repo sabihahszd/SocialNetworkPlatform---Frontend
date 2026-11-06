@@ -374,10 +374,18 @@
     renderBadges();
   }
 
-  function renderComment(comment, postId, nested = false) {
-    const author = userById(comment.authorId);
-    const manage = author.id === state.currentUserId ? `<button class="comment-reply-button" data-action="edit-comment" data-comment-id="${escapeHTML(comment.id)}">Edit</button><button class="comment-reply-button" data-action="delete-comment" data-comment-id="${escapeHTML(comment.id)}">Delete</button>` : '';
-    return `<div class="${nested ? 'comment-reply' : 'comment-item'}"><div class="comment-content">${avatar(author)}<div class="comment-bubble"><strong>${escapeHTML(author.name)}</strong>${escapeHTML(comment.text)}<div class="comment-tools"><button class="comment-reply-button" data-action="reply-comment" data-comment-id="${escapeHTML(comment.id)}" data-post-id="${escapeHTML(postId)}">Reply</button>${manage}</div></div></div></div>${(comment.replies || []).map(reply => renderComment(reply, postId, true)).join('')}`;
+  function renderComment(comment, postId, nested = false, includeReplies = true) {
+    const lookedUp = userById(comment.authorId);
+    const author = {
+      ...lookedUp,
+      id: comment.authorId || lookedUp.id,
+      name: comment.authorName || lookedUp.name,
+      username: comment.authorUsername || lookedUp.username,
+      photo: comment.authorPhoto || lookedUp.photo
+    };
+    const manage = author.id === state.currentUserId ? `<button class="comment-reply-button" type="button" data-action="edit-comment" data-comment-id="${escapeHTML(comment.id)}">Edit</button><button class="comment-reply-button" type="button" data-action="delete-comment" data-comment-id="${escapeHTML(comment.id)}">Delete</button>` : '';
+    const replies = includeReplies ? (comment.replies || []).map(reply => renderComment(reply, postId, true)).join('') : '';
+    return `<div class="${nested ? 'comment-reply' : 'comment-item'}" data-comment-id="${escapeHTML(comment.id)}"><div class="post-header"><a href="profile.html" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context">${prettyTime(comment.createdAt)}</span></div></div><p class="post-text">${escapeHTML(comment.text)}</p><div class="comment-tools"><button class="comment-reply-button" type="button" data-action="reply-comment" data-comment-id="${escapeHTML(comment.id)}" data-post-id="${escapeHTML(postId)}">Reply</button>${manage}</div></div>${replies}`;
   }
 
   function renderPost(post, { readOnly = false } = {}) {
@@ -622,9 +630,16 @@
         const comment = post && findComment(post.comments, element.dataset.commentId);
         if (!comment || comment.authorId !== state.currentUserId) return true;
         if (name === 'edit-comment') {
-          const bubble = element.closest('.comment-bubble');
-          bubble.innerHTML = `<form class="inline-edit-form" data-edit-comment-form data-post-id="${escapeHTML(post.id)}" data-comment-id="${escapeHTML(comment.id)}"><textarea name="edit-text" rows="2" maxlength="240" required aria-label="Edit reply">${escapeHTML(comment.text)}</textarea><div><button type="submit">Save</button><button type="button" data-action="cancel-comment-edit">Cancel</button></div></form>`;
-          bubble.querySelector('textarea').focus();
+          const textNode = element.closest('.comment-item, .comment-reply')?.querySelector('.post-text');
+          if (!textNode) return true;
+          const form = document.createElement('form');
+          form.className = 'inline-edit-form';
+          form.dataset.editCommentForm = '';
+          form.dataset.postId = post.id;
+          form.dataset.commentId = comment.id;
+          form.innerHTML = `<textarea name="edit-text" rows="2" maxlength="240" required aria-label="Edit reply">${escapeHTML(comment.text)}</textarea><div><button type="submit">Save</button><button type="button" data-action="cancel-comment-edit">Cancel</button></div>`;
+          textNode.replaceWith(form);
+          form.querySelector('textarea').focus();
           return true;
         }
         return true;
@@ -862,12 +877,12 @@
     const author = currentUser();
     const item = document.createElement('div');
     item.className = 'comment-item';
-    item.innerHTML = `<div class="comment-content">${author ? avatar(author) : '<span class="avatar"></span>'}<div class="comment-bubble"><strong>${escapeHTML(author?.name || '')}</strong> ${escapeHTML(text)}<div class="comment-tools"><button class="comment-reply-button" type="button" data-action="reply-comment">Reply</button></div></div></div>`;
+    item.innerHTML = `<div class="post-header"><a href="profile.html" aria-label="${escapeHTML(author?.name || 'Profile')} profile">${author ? avatar(author) : '<span class="avatar"></span>'}</a><div class="post-author"><strong>${escapeHTML(author?.name || '')}</strong><span class="handle">@${escapeHTML(author?.username || '')}</span><span class="post-context">just now</span></div></div><p class="post-text">${escapeHTML(text)}</p><div class="comment-tools"><button class="comment-reply-button" type="button" data-action="reply-comment">Reply</button></div>`;
     const parent = list.querySelector('.comment-item:last-child');
     if (form.dataset.replyParent && parent) {
       const reply = document.createElement('div');
       reply.className = 'comment-reply';
-      reply.innerHTML = item.querySelector('.comment-content').innerHTML;
+      reply.innerHTML = item.innerHTML;
       parent.append(reply);
     } else list.append(item);
     delete form.dataset.replyParent;
@@ -951,6 +966,7 @@
     commit,
     reload,
     renderPost,
+    renderComment,
     escapeHTML,
     safePhoto,
     avatar,
@@ -1004,7 +1020,13 @@ function applyDirectoryView() {
     const visible = cards.filter(card => {
       const joined = Boolean(card.querySelector('.directory-joined')) || /joined/i.test(card.querySelector('[data-action="toggle-community"]')?.textContent || '');
       const matchesQuery = card.textContent.toLowerCase().includes(query);
-      const show = matchesQuery && (directoryFilter !== 'joined' || joined);
+      const created = /creator/i.test(card.textContent || '');
+      const show = matchesQuery && (
+        directoryFilter === 'all'
+        || directoryFilter === 'popular'
+        || (directoryFilter === 'joined' && (joined || created))
+        || (directoryFilter === 'created' && created)
+      );
       card.classList.toggle('hidden', !show);
       return show;
     });
@@ -1021,6 +1043,7 @@ function renderDirectory() {
   const query = document.querySelector('[data-community-search]')?.value.trim().toLowerCase() || '';
   let circles = Gather.state.communities.filter(circle => `${circle.name} ${circle.description}`.toLowerCase().includes(query));
   if (directoryFilter === 'joined') circles = circles.filter(Gather.isCommunityMember);
+  if (directoryFilter === 'created') circles = circles.filter(circle => circle.ownerId === Gather.state.currentUserId);
   if (directoryFilter === 'popular') circles = circles.slice().sort((a, b) => b.members - a.members);
   document.querySelectorAll('[data-community-directory]').forEach(container => {
     container.innerHTML = circles.map(circle => `<article class="directory-card"><a class="directory-card-art" href="${Gather.communityUrl(circle.id)}" style="${circle.banner ? `background-image:linear-gradient(0deg, rgba(25, 53, 39, .13), transparent), url('${Gather.escapeHTML(circle.banner)}')` : `--community-color:${Gather.escapeHTML(circle.color)}`}" aria-label="Open ${Gather.escapeHTML(circle.name)}"></a><div class="directory-card-body"><a class="directory-card-title" href="${Gather.communityUrl(circle.id)}"><h2>${Gather.escapeHTML(circle.name)}</h2></a><p class="directory-card-description">${Gather.escapeHTML(circle.description)}</p><div class="directory-card-footer"><span class="directory-members">${Gather.memberCount(circle.members)} members</span>${circle.ownerId === Gather.state.currentUserId ? '<span class="directory-joined">Creator</span>' : Gather.isCommunityMember(circle) ? '<span class="directory-joined">✓ Joined</span>' : `<button class="button button-small button-primary" data-action="toggle-community" data-community-id="${Gather.escapeHTML(circle.id)}">Join</button>`}</div></div></article>`).join('');
@@ -1070,7 +1093,7 @@ function renderDetail() {
     node.style.backgroundImage = community.banner ? `linear-gradient(0deg, rgba(25, 53, 39, .13), transparent), url("${community.banner.replace(/"/g, '')}")` : '';
   });
   document.querySelectorAll('[data-community-members], [data-community-side-members]').forEach(node => { node.textContent = Gather.memberCount(community.members); });
-  document.querySelectorAll('[data-community-owner]').forEach(node => { node.textContent = Gather.userById(community.ownerId).name; });
+  document.querySelectorAll('[data-community-owner]').forEach(node => { node.textContent = community.ownerName || Gather.userById(community.ownerId).name; });
   document.querySelectorAll('[data-community-privacy]').forEach(node => { node.textContent = 'Open community'; });
   const member = Gather.isCommunityMember(community);
   document.querySelectorAll('[data-action="community-join"]').forEach(button => {
