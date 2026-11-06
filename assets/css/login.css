@@ -1657,6 +1657,38 @@ select:focus-visible {
     text-decoration: underline;
 }
 
+.password-field {
+    position: relative;
+    display: block;
+}
+
+.password-field input {
+    padding-right: 40px;
+}
+
+.password-toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    display: grid;
+    place-items: center;
+    width: 36px;
+    height: 100%;
+    border: 0;
+    border-radius: 0 10px 10px 0;
+    background: transparent;
+    color: #75827a;
+    cursor: pointer;
+}
+
+.password-toggle:hover {
+    color: var(--forest-deep);
+}
+
+.password-toggle:focus-visible {
+    outline-offset: -3px;
+}
+
 .auth-notice {
     min-height: 16px;
     margin: -5px 0 0;

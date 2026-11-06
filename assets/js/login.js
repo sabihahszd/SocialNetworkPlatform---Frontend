@@ -1045,5 +1045,22 @@ document.addEventListener('submit', event => {
   submitLogin(form);
 });
 
+function setPasswordVisible(button, visible) {
+  const input = button.closest('.password-field')?.querySelector('input');
+  const icon = button.querySelector('i');
+  if (!(input instanceof HTMLInputElement)) return;
+  input.type = visible ? 'text' : 'password';
+  button.setAttribute('aria-pressed', String(visible));
+  button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+  icon?.classList.toggle('fa-eye', !visible);
+  icon?.classList.toggle('fa-eye-slash', visible);
+}
+
+document.addEventListener('click', event => {
+  const button = event.target.closest('[data-password-toggle]');
+  if (!(button instanceof HTMLButtonElement)) return;
+  setPasswordVisible(button, button.getAttribute('aria-pressed') !== 'true');
+});
+
 loadLoginSite();
 

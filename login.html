@@ -11,6 +11,8 @@
     <link
         href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
         rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        crossorigin="anonymous">
     <link rel="stylesheet" href="assets/css/login.css">
     <script src="assets/js/login.js" defer></script>
 </head>
@@ -23,8 +25,10 @@
             <p class="auth-intro">A familiar face. A new conversation. Pick up right where you left off.</p>
             <form class="auth-form" data-auth-form="login"><label class="field-label">Email or username<input
                         name="identity" required autocomplete="username" placeholder="Email or username"></label><label
-                    class="field-label">Password<input name="password" type="password" required
-                        autocomplete="current-password" placeholder="Your password"></label><button
+                    class="field-label">Password<span class="password-field"><input name="password" type="password" required
+                        autocomplete="current-password" placeholder="Your password"><button class="password-toggle"
+                        type="button" data-password-toggle aria-label="Show password" aria-pressed="false"><i
+                            class="fa-regular fa-eye" aria-hidden="true"></i></button></span></label><button
                     class="button button-primary button-wide" type="submit">Come on in <span>→</span></button>
                 <p class="auth-notice" data-auth-notice role="status"></p>
             </form>
