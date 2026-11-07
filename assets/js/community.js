@@ -988,7 +988,8 @@
     readPhotoFile,
     readMediaFile,
     clearMediaInput,
-    applyBranding
+    applyBranding,
+    renderShell
   };
 })();
 
