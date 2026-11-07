@@ -1010,10 +1010,12 @@ function visiblePosts() {
 
 function renderAudience() {
   document.querySelectorAll('#post-privacy').forEach(select => {
-    const selected = select.value;
     const joined = Gather.state.communities.filter(Gather.isCommunityMember);
-    select.innerHTML = `<option value="public">Everyone</option>${joined.map(community => `<option value="community:${Gather.escapeHTML(community.id)}">${Gather.escapeHTML(community.emoji)} ${Gather.escapeHTML(community.name)}</option>`).join('')}`;
-    select.value = [...select.options].some(option => option.value === selected) ? selected : 'public';
+    const communities = joined.map(community => `<option value="community:${Gather.escapeHTML(community.id)}">${Gather.escapeHTML(community.emoji)} ${Gather.escapeHTML(community.name)}</option>`).join('');
+    select.innerHTML = `<option value="public">Everyone</option><option value="friends">Friends only</option>${communities}`;
+    const fallback = Gather.appSettings.defaultPrivacy === 'friends' ? 'friends' : 'public';
+    const next = [select.dataset.chosen, fallback].find(value => [...select.options].some(option => option.value === value)) || 'public';
+    select.value = next;
   });
 }
 
@@ -1083,9 +1085,9 @@ Gather.start({
         loadFeed().catch(error => showActionError(tab, error));
       });
     });
-  },
-  action(name) {
-    if (name === 'create-post') return submitHomePost();
+    document.querySelector('#post-privacy')?.addEventListener('change', event => {
+      event.currentTarget.dataset.chosen = event.currentTarget.value;
+    });
   }
 });
 
@@ -1129,7 +1131,7 @@ async function apiFetch(path, options = {}) {
   const token = Gather.api.token();
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers, cache: 'no-store' });
   if (response.status === 401) {
     Gather.api.clear();
     window.location.href = 'login.html';
@@ -1138,7 +1140,12 @@ async function apiFetch(path, options = {}) {
   if (response.status === 204) return null;
 
   const data = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(data?.message || 'Request failed.');
+  if (!response.ok) {
+    const details = Object.values(data?.errors || {}).flat().find(item => typeof item === 'string');
+    const error = new Error(data?.message || details || (response.status === 404 ? 'That could not be found.' : 'Request failed.'));
+    error.status = response.status;
+    throw error;
+  }
   return data;
 }
 
@@ -1225,8 +1232,12 @@ async function loadHome() {
     await loadFeed();
     const requestedId = new URLSearchParams(window.location.search).get('post');
     if (requestedId && !Gather.state.posts.some(post => post.id === requestedId)) {
-      const post = await apiFetch(`/api/posts/${encodeURIComponent(requestedId)}`);
-      if (post) Gather.state.posts.push(post);
+      try {
+        const post = await apiFetch(`/api/posts/${encodeURIComponent(requestedId)}`);
+        if (post) Gather.state.posts.push(post);
+      } catch (error) {
+        if (error.status !== 404) throw error;
+      }
     }
 
     paintHome();
@@ -1281,6 +1292,11 @@ async function runHomeAction(element, work) {
 }
 
 async function handleHomeAction(name, element) {
+  if (name === 'create-post') {
+    await submitHomePost();
+    return;
+  }
+
   const postId = element.dataset.postId || element.closest('[data-post-id]')?.dataset.postId;
 
   if (name === 'toggle-like' || name === 'toggle-repost' || name === 'toggle-bookmark') {

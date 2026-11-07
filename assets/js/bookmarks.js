@@ -1050,7 +1050,7 @@ async function apiFetch(path, options = {}) {
   const token = Gather.api.token();
   if (token) headers.set('Authorization', `Bearer ${token}`);
 
-  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers, cache: 'no-store' });
   if (response.status === 401) {
     Gather.api.clear();
     window.location.href = 'login.html';
@@ -1059,7 +1059,12 @@ async function apiFetch(path, options = {}) {
   if (response.status === 204) return null;
 
   const data = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(data?.message || 'Request failed.');
+  if (!response.ok) {
+    const details = Object.values(data?.errors || {}).flat().find(item => typeof item === 'string');
+    const error = new Error(data?.message || details || (response.status === 404 ? 'That could not be found.' : 'Request failed.'));
+    error.status = response.status;
+    throw error;
+  }
   return data;
 }
 

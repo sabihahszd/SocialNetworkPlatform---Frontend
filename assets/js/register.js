@@ -1006,10 +1006,13 @@ const API_BASE = 'http://localhost:5039';
 async function apiFetch(path, options = {}) {
   const headers = new Headers(options.headers || {});
   if (options.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
-  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers, cache: 'no-store' });
   if (response.status === 204) return null;
   const data = await response.json().catch(() => null);
-  if (!response.ok) throw new Error(data?.message || 'Request failed.');
+  if (!response.ok) {
+    const details = Object.values(data?.errors || {}).flat().find(item => typeof item === 'string');
+    throw new Error(data?.message || details || 'Request failed.');
+  }
   return data;
 }
 
