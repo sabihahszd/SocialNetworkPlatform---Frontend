@@ -14,9 +14,9 @@
     reports: [],
     chats: [],
     site: {
-      siteName: 'gather',
+      siteName: '',
       tagline: '',
-      logoMark: 'g',
+      logoMark: '',
       logoUrl: '',
       footerNote: '',
       aboutBody: '',
@@ -147,8 +147,8 @@
   function applyBranding(site) {
     if (!site) return;
     state.site = { ...state.site, ...site };
-    const name = site.siteName || 'gather';
-    const mark = (site.logoMark || name.charAt(0) || 'g').slice(0, 2);
+    const name = site.siteName || '';
+    const mark = (site.logoMark || name.charAt(0) || '').slice(0, 2);
     const logo = site.logoUrl ? safePhoto(site.logoUrl) : '';
     document.querySelectorAll('.brand').forEach(node => {
       const badge = node.querySelector('.brand-mark');
@@ -1305,16 +1305,10 @@ function upsertPost(post) {
   else Gather.state.posts[index] = post;
 }
 
-function rememberSite(site) {
-  if (!site) return;
-  Gather.state.site = { ...Gather.state.site, ...site };
-  Gather.applyBranding(Gather.state.site);
-}
-
 function paintProfile() {
-  Gather.applyBranding(Gather.state.site);
   Gather.renderShell();
   render();
+  Gather.applyBranding(Gather.state.site);
 }
 
 async function refreshPost(id) {
@@ -1338,7 +1332,7 @@ async function loadProfile() {
     Gather.renderShell();
 
     const [site, settings, users, friends, posts, communities, notifications, chats, follows] = await Promise.all([
-      apiFetch('/api/site').then(value => { rememberSite(value); return value; }),
+      apiFetch('/api/site'),
       apiFetch('/api/settings'),
       apiFetch('/api/users'),
       apiFetch('/api/friends').catch(() => []),
@@ -1352,7 +1346,7 @@ async function loadProfile() {
     Gather.state.currentUserId = me.id;
     Gather.state.users = users || [];
     rememberUser(me);
-    rememberSite(site);
+    if (site) Gather.state.site = { ...Gather.state.site, ...site };
     if (settings) Object.assign(Gather.appSettings, settings);
     Gather.state.friends = (friends || []).map(item => item.friendId);
     Gather.state.following = follows?.following || [];

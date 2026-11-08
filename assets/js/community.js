@@ -14,9 +14,9 @@
     reports: [],
     chats: [],
     site: {
-      siteName: 'gather',
+      siteName: '',
       tagline: '',
-      logoMark: 'g',
+      logoMark: '',
       logoUrl: '',
       footerNote: '',
       aboutBody: '',
@@ -147,8 +147,8 @@
   function applyBranding(site) {
     if (!site) return;
     state.site = { ...state.site, ...site };
-    const name = site.siteName || 'gather';
-    const mark = (site.logoMark || name.charAt(0) || 'g').slice(0, 2);
+    const name = site.siteName || '';
+    const mark = (site.logoMark || name.charAt(0) || '').slice(0, 2);
     const logo = site.logoUrl ? safePhoto(site.logoUrl) : '';
     document.querySelectorAll('.brand').forEach(node => {
       const badge = node.querySelector('.brand-mark');
@@ -450,7 +450,7 @@
     initFilePlaceholders();
   }
 
-  function showShareUrlFallback(url, message = 'Select and copy the post link.') {
+  function showShareUrlFallback(url, message = 'Select and copy the link.') {
     const input = document.querySelector('[data-share-url]');
     const notice = document.querySelector('[data-share-notice]');
     if (!input) return;
@@ -609,7 +609,7 @@
         const id = element.dataset.postId || card?.dataset.postId;
         if (!id) return true;
         if (card) sessionStorage.setItem(`gather.post.${id}`, card.outerHTML);
-        window.location.href = `home.html?post=${encodeURIComponent(id)}`;
+        window.location.href = postDetailHref(id);
         return true;
       }
       case 'focus-comment':
@@ -666,6 +666,11 @@
         const copy = dialog.querySelector('.modal-copy');
         if (copy) copy.textContent = 'Send it to a friend or group, or share the link.';
         const url = new URL(`home.html?post=${encodeURIComponent(id)}`, window.location.href).href;
+        dialog.dataset.shareUrl = url;
+        const heading = dialog.querySelector('h2');
+        if (heading) heading.textContent = 'Share this post';
+        const linkText = [...(dialog.querySelector('[data-share-url-wrap]')?.childNodes || [])].find(node => node.nodeType === Node.TEXT_NODE);
+        if (linkText) linkText.textContent = 'Post link';
         const encodedUrl = encodeURIComponent(url);
         const chatIds = new Set(state.chats.map(thread => thread.participantId));
         const shareTargets = [
@@ -893,6 +898,15 @@
     return true;
   }
 
+  function postDetailHref(id) {
+    const params = new URLSearchParams({ post: id });
+    if (document.body.dataset.page === 'community') {
+      const communityId = new URLSearchParams(location.search).get('id');
+      if (communityId) params.set('return', `community.html?id=${communityId}`);
+    }
+    return `home.html?${params.toString()}`;
+  }
+
   function bindShell() {
     document.querySelectorAll('a[href="login.html"]').forEach(link => link.addEventListener('click', () => api.clear()));
     initPhotoUploads();
@@ -924,8 +938,9 @@
       const openLink = event.target.closest('a.post-open-link');
       if (card?.dataset.postId && !card.closest('[data-home-post-detail]') && (openLink || (!actionElement && !event.target.closest('a, input, textarea, button, label')))) {
         sessionStorage.setItem(`gather.post.${card.dataset.postId}`, card.outerHTML);
-        if (!openLink && !actionElement) {
-          window.location.href = `home.html?post=${encodeURIComponent(card.dataset.postId)}`;
+        if (openLink || !actionElement) {
+          event.preventDefault();
+          window.location.href = postDetailHref(card.dataset.postId);
           return;
         }
       }
@@ -1138,6 +1153,41 @@ function render() {
   renderDetail();
 }
 
+function ensureShareDialog() {
+  if (document.querySelector('[data-share-modal]')) return;
+  const dialog = document.createElement('dialog');
+  dialog.className = 'gather-action-dialog';
+  dialog.dataset.shareModal = '';
+  dialog.innerHTML = '<div class="gather-action-content"><button class="modal-close" type="button" data-action="close-dialog" aria-label="Close">×</button><h2>Share this community</h2><p class="modal-copy">Send it to a friend or group, or share the link.</p><div class="gather-action-options" data-share-options></div><label class="field-label hidden" data-share-url-wrap>Community link<input type="url" readonly data-share-url></label><p class="gather-action-notice" data-share-notice role="status"></p></div>';
+  document.body.append(dialog);
+}
+
+function openShareDialog(url, title, linkLabel) {
+  ensureShareDialog();
+  const dialog = document.querySelector('[data-share-modal]');
+  delete dialog.dataset.postId;
+  dialog.dataset.shareUrl = url;
+  const heading = dialog.querySelector('h2');
+  if (heading) heading.textContent = title;
+  const copy = dialog.querySelector('.modal-copy');
+  if (copy) copy.textContent = 'Send it to a friend or group, or share the link.';
+  const linkText = [...(dialog.querySelector('[data-share-url-wrap]')?.childNodes || [])].find(node => node.nodeType === Node.TEXT_NODE);
+  if (linkText) linkText.textContent = linkLabel;
+  const encodedUrl = encodeURIComponent(url);
+  const chatIds = new Set(Gather.state.chats.map(thread => thread.participantId));
+  const shareTargets = [
+    ...Gather.state.chats.map(thread => ({ user: Gather.userById(thread.participantId), kind: 'Chat' })),
+    ...Gather.state.friends.filter(friendId => !chatIds.has(friendId)).map(friendId => ({ user: Gather.userById(friendId), kind: 'Friend' }))
+  ].filter(target => target.user?.id && target.user.id !== 'someone');
+  const shareList = shareTargets.length
+    ? `<div class="share-chat-list">${shareTargets.map(target => `<button class="share-chat" type="button" data-action="share-to-chat" data-user-id="${Gather.escapeHTML(target.user.id)}">${Gather.avatar(target.user)}<span class="share-chat-copy"><strong>${Gather.escapeHTML(target.user.name)}</strong><span>@${Gather.escapeHTML(target.user.username)}</span></span><span class="share-chat-kind">${target.kind}</span></button>`).join('')}</div>`
+    : '';
+  dialog.querySelector('[data-share-options]').innerHTML = `${shareList}<div class="share-platforms"><button type="button" data-action="share-copy" data-url="${Gather.escapeHTML(url)}" aria-label="Copy link"><i class="fa-regular fa-clone"></i></button><a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on Facebook"><i class="fa-brands fa-facebook"></i></a><a href="https://twitter.com/intent/tweet?url=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on X"><i class="fa-brands fa-x-twitter"></i></a><a href="https://wa.me/?text=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on WhatsApp"><i class="fa-brands fa-whatsapp"></i></a></div>`;
+  dialog.querySelector('[data-share-notice]').textContent = '';
+  dialog.querySelector('[data-share-url-wrap]')?.classList.add('hidden');
+  if (!dialog.open) dialog.showModal();
+}
+
 Gather.start({
   render,
   bind() {
@@ -1172,10 +1222,9 @@ Gather.start({
       return;
     }
     if (name === 'community-share') {
-      const url = `${location.origin}${location.pathname}${location.search}`;
-      if (navigator.clipboard?.writeText) {
-        navigator.clipboard.writeText(url).then(() => { element.textContent = 'Copied'; }).catch(() => { element.textContent = 'Copy the address bar'; });
-      } else element.textContent = 'Copy the address bar';
+      const community = selectedCommunity();
+      if (!community?.id) return;
+      openShareDialog(new URL(Gather.communityUrl(community.id), window.location.href).href, 'Share this community', 'Community link');
     }
   }
 });
@@ -1272,16 +1321,10 @@ function upsertCommunity(community) {
   else Gather.state.communities[index] = community;
 }
 
-function rememberSite(site) {
-  if (!site) return;
-  Gather.state.site = { ...Gather.state.site, ...site };
-  Gather.applyBranding(Gather.state.site);
-}
-
 function paintCommunity() {
-  Gather.applyBranding(Gather.state.site);
   Gather.renderShell();
   render();
+  Gather.applyBranding(Gather.state.site);
   document.querySelector('.request-section')?.classList.toggle('hidden', Gather.appSettings.showSuggestions === false);
 }
 
@@ -1306,7 +1349,7 @@ async function loadCommunity() {
     Gather.renderShell();
 
     const [site, settings, users, friends, outgoing, posts, communities, notifications, chats] = await Promise.all([
-      apiFetch('/api/site').then(value => { rememberSite(value); return value; }),
+      apiFetch('/api/site'),
       apiFetch('/api/settings'),
       apiFetch('/api/users'),
       apiFetch('/api/friends').catch(() => []),
@@ -1320,7 +1363,7 @@ async function loadCommunity() {
     Gather.state.currentUserId = me.id;
     Gather.state.users = users || [];
     rememberUser(me);
-    rememberSite(site);
+    if (site) Gather.state.site = { ...Gather.state.site, ...site };
     if (settings) Object.assign(Gather.appSettings, settings);
     Gather.state.friends = (friends || []).map(item => item.friendId);
     Gather.state.outgoingRequests = (outgoing || [])
@@ -1439,7 +1482,7 @@ async function handleCommunityAction(name, element) {
 
   if (name === 'share-to-chat') {
     const dialog = element.closest('dialog');
-    const url = new URL(`home.html?post=${encodeURIComponent(dialog?.dataset.postId || '')}`, window.location.href).href;
+    const url = dialog?.dataset.shareUrl || new URL(`home.html?post=${encodeURIComponent(dialog?.dataset.postId || '')}`, window.location.href).href;
     const sent = await apiFetch('/api/chats/direct', {
       method: 'POST',
       body: JSON.stringify({ participantId: element.dataset.userId, text: url })

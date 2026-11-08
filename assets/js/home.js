@@ -1019,10 +1019,34 @@ function renderAudience() {
   });
 }
 
+function communityReturnUrl() {
+  const raw = new URLSearchParams(window.location.search).get('return');
+  if (!raw) return '';
+  let url;
+  try { url = new URL(raw, window.location.href); }
+  catch { return ''; }
+  if (url.origin !== window.location.origin) return '';
+  if (url.pathname.split('/').pop() !== 'community.html') return '';
+  const id = url.searchParams.get('id');
+  if (!id || /[\\/]/.test(id)) return '';
+  return `community.html?id=${encodeURIComponent(id)}`;
+}
+
 function renderPostDetail() {
   const detail = document.querySelector('[data-home-post-detail]');
   if (!detail) return;
   const requestedId = new URLSearchParams(window.location.search).get('post');
+  const backHref = communityReturnUrl() || 'home.html';
+  const back = detail.querySelector('.back-button');
+  if (back) {
+    back.href = backHref;
+    back.setAttribute('aria-label', backHref === 'home.html' ? 'Back to feed' : 'Back to community');
+  }
+  const returnLink = detail.querySelector('[data-home-post-not-found] a');
+  if (returnLink) {
+    returnLink.href = backHref;
+    returnLink.textContent = backHref === 'home.html' ? 'Return to your feed' : 'Return to the community';
+  }
   const feedView = document.querySelector('[data-home-feed-view]');
   const content = detail.querySelector('[data-home-post-detail-content]');
   const notFound = detail.querySelector('[data-home-post-not-found]');
