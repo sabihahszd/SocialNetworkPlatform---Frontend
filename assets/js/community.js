@@ -333,7 +333,7 @@
   function renderSuggestions() {
     const candidates = state.users.filter(user => user.id !== state.currentUserId && user.active !== false && !isFriend(user.id) && !isBlocked(user.id));
     document.querySelectorAll('[data-suggestions]').forEach(container => {
-      container.innerHTML = candidates.slice(0, 3).map(user => `<div class="suggestion">${avatar(user)}<div class="suggestion-info"><strong>${escapeHTML(user.name)}</strong><span>@${escapeHTML(user.username)}</span></div><button class="icon-button" data-action="send-request" data-user-id="${escapeHTML(user.id)}" aria-label="Add ${escapeHTML(user.name)} as a friend">${isPending(user.id) ? '✓' : '＋'}</button></div>`).join('') || '<p class="subtle">You know everyone here. Nice.</p>';
+      container.innerHTML = candidates.slice(0, 3).map(user => `<div class="suggestion">${avatar(user)}<div class="suggestion-info"><strong>${escapeHTML(user.name)}</strong><span>@${escapeHTML(user.username)}</span></div><button class="icon-button" data-action="send-request" data-user-id="${escapeHTML(user.id)}" aria-label="${isPending(user.id) ? `Cancel request to ${escapeHTML(user.name)}` : `Add ${escapeHTML(user.name)} as a friend`}">${isPending(user.id) ? '✓' : '＋'}</button></div>`).join('') || '<p class="subtle">You know everyone here. Nice.</p>';
     });
     document.querySelectorAll('[data-people-grid]').forEach(container => {
       container.innerHTML = candidates.map(user => `<article class="person-card">${avatar(user)}<div class="person-card-info"><strong>${escapeHTML(user.name)}</strong><span>@${escapeHTML(user.username)}</span></div><button class="button button-small ${isPending(user.id) ? 'button-following' : 'button-secondary'}" data-action="send-request" data-user-id="${escapeHTML(user.id)}">${isPending(user.id) ? 'Requested' : 'Add'}</button></article>`).join('') || '<p class="subtle">Your people are already here.</p>';
@@ -1495,9 +1495,19 @@ async function handleCommunityAction(name, element) {
 
   if (name === 'send-request') {
     const userId = element.dataset.userId;
+    if (!userId) return;
+    if (Gather.isPending(userId)) {
+      try {
+        await apiFetch(`/api/friends/requests/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+      } catch (error) {
+        if (error.status !== 404) throw error;
+      }
+      Gather.state.outgoingRequests = Gather.state.outgoingRequests.filter(id => id !== userId);
+      Gather.renderShell();
+      return;
+    }
     const request = await apiFetch(`/api/friends/requests/${encodeURIComponent(userId)}`, { method: 'POST' });
-    if (!request) return;
-    if (request.status === 'pending' && !Gather.state.outgoingRequests.includes(userId)) {
+    if (request?.status === 'pending' && !Gather.state.outgoingRequests.includes(userId)) {
       Gather.state.outgoingRequests.push(userId);
     }
     Gather.renderShell();
