@@ -1024,10 +1024,11 @@ if (dateLabel) {
 }
 
 function visiblePosts() {
-  let posts = Gather.state.posts.filter(Gather.canSee);
-  if (feedFilter === 'following') {
-    posts = posts.filter(post => post.authorId !== Gather.state.currentUserId && Gather.state.following.includes(post.authorId));
-  }
+  const posts = Gather.state.posts.filter(post => {
+    if (!Gather.canSee(post)) return false;
+    if (feedFilter !== 'friends') return true;
+    return post.authorId === Gather.state.currentUserId || Gather.isFriend(post.authorId);
+  });
   return posts.sort(Gather.byNewest);
 }
 
@@ -1112,7 +1113,14 @@ function render() {
   document.querySelectorAll('[data-feed-list]').forEach(container => {
     container.innerHTML = posts.map(post => Gather.renderPost(post)).join('');
   });
-  document.querySelector('[data-empty-feed]')?.classList.toggle('hidden', posts.length > 0);
+  const empty = document.querySelector('[data-empty-feed]');
+  empty?.classList.toggle('hidden', posts.length > 0);
+  const emptyCopy = empty?.querySelector('p');
+  if (emptyCopy) {
+    emptyCopy.textContent = feedFilter === 'friends'
+      ? 'Posts from your friends will show up here.'
+      : 'Posts from everyone on Gather will show up here.';
+  }
   renderAudience();
   renderPostDetail();
 }
