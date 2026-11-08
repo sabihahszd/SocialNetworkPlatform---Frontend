@@ -43,10 +43,30 @@
 
   let session = {};
 
+  const TAB_LOGOUT_KEY = 'gather.tabLoggedOut';
+
+  function tabToken() {
+    if (sessionStorage.getItem(TAB_LOGOUT_KEY) === '1') return '';
+    const current = sessionStorage.getItem(TOKEN_KEY);
+    if (current) return current;
+    const shared = localStorage.getItem(TOKEN_KEY) || '';
+    if (shared) sessionStorage.setItem(TOKEN_KEY, shared);
+    return shared;
+  }
+
   const api = {
-    token: () => localStorage.getItem(TOKEN_KEY) || '',
-    setToken: token => localStorage.setItem(TOKEN_KEY, token),
-    clear: () => localStorage.removeItem(TOKEN_KEY)
+    token: () => tabToken(),
+    setToken: token => {
+      sessionStorage.removeItem(TAB_LOGOUT_KEY);
+      sessionStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(TOKEN_KEY, token);
+    },
+    clear: () => {
+      const current = sessionStorage.getItem(TOKEN_KEY) || '';
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.setItem(TAB_LOGOUT_KEY, '1');
+      if (!current || localStorage.getItem(TOKEN_KEY) === current) localStorage.removeItem(TOKEN_KEY);
+    }
   };
 
   const currentUser = () => state.users.find(user => user.id === state.currentUserId) || (state.currentUserId ? null : state.users[0]);
@@ -326,7 +346,12 @@
       }).join('');
     });
     document.querySelectorAll('[data-community-grid]').forEach(container => {
-      container.innerHTML = state.communities.slice().sort((a, b) => b.members - a.members).map(circle => `<article class="community-card" style="--community-bg:${escapeHTML(circle.color)}"><a class="trend-stamp" href="${communityUrl(circle.id)}" style="--stamp:rgba(255,255,255,.7)" aria-label="Open ${escapeHTML(circle.name)}">${escapeHTML(circle.emoji)}</a><a class="community-card-title" href="${communityUrl(circle.id)}"><h3>${escapeHTML(circle.name)}</h3></a><p>${escapeHTML(circle.description)}</p><div class="community-card-foot"><span>${memberCount(circle.members)} members</span><button class="button button-small ${isCommunityMember(circle) ? 'button-following' : 'button-primary'}" data-action="toggle-community" data-community-id="${escapeHTML(circle.id)}"${circle.ownerId === state.currentUserId ? ' disabled' : ''}>${circle.ownerId === state.currentUserId ? 'Creator' : (isCommunityMember(circle) ? 'Joined' : 'Join community')}</button></div></article>`).join('');
+      container.innerHTML = state.communities.slice().sort((a, b) => b.members - a.members).map(circle => {
+        const art = circle.banner
+          ? `background-image:linear-gradient(0deg, rgba(25, 53, 39, .13), transparent), url('${escapeHTML(circle.banner)}')`
+          : `--community-color:${escapeHTML(circle.color)}`;
+        return `<article class="community-card"><a class="community-card-art" href="${communityUrl(circle.id)}" style="${art}" aria-label="Open ${escapeHTML(circle.name)}"></a><a class="community-card-title" href="${communityUrl(circle.id)}"><h3>${escapeHTML(circle.name)}</h3></a><p>${escapeHTML(circle.description)}</p><div class="community-card-foot"><span>${memberCount(circle.members)} members</span><button class="button button-small ${isCommunityMember(circle) ? 'button-following' : 'button-primary'}" data-action="toggle-community" data-community-id="${escapeHTML(circle.id)}"${circle.ownerId === state.currentUserId ? ' disabled' : ''}>${circle.ownerId === state.currentUserId ? 'Creator' : (isCommunityMember(circle) ? 'Joined' : 'Join community')}</button></div></article>`;
+      }).join('');
     });
   }
 
@@ -894,7 +919,10 @@
   }
 
   function bindShell() {
-    document.querySelectorAll('a[href="login.html"]').forEach(link => link.addEventListener('click', () => api.clear()));
+    document.querySelectorAll('a[href="login.html"]').forEach(link => link.addEventListener('click', event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+      api.clear();
+    }));
     initPhotoUploads();
     initCardArtUploads();
     initFilePlaceholders();

@@ -1308,50 +1308,50 @@ select:focus-visible {
     position: relative;
     min-height: 148px;
     overflow: hidden;
-    padding: 14px;
     border: 1px solid var(--line);
     border-radius: 7px;
-    background: var(--community-bg, #f0ebf5);
+    background: #fff;
 }
 
-.community-card::after {
-    position: absolute;
-    right: -16px;
-    bottom: -32px;
-    width: 96px;
-    height: 96px;
-    border: 1px solid rgba(33, 76, 61, .09);
-    border-radius: 50%;
-    box-shadow: 0 0 0 13px rgba(33, 76, 61, .035), 0 0 0 27px rgba(33, 76, 61, .025);
-    content: '';
+.community-card-art {
+    display: block;
+    height: 118px;
+    overflow: hidden;
+    background: var(--community-color, #e1d5f0) center 48% / cover no-repeat;
 }
 
-.community-card .trend-stamp {
-    width: 31px;
-    height: 31px;
+.community-card-title {
+    display: block;
+    width: fit-content;
+    margin: 12px 14px 0;
+    color: var(--ink);
+}
+
+.community-card-title:hover {
+    color: var(--forest);
+    text-decoration: underline;
 }
 
 .community-card h3 {
-    margin: 8px 0 3px;
+    margin: 0 0 3px;
     font-size: 13px;
 }
 
 .community-card p {
-    max-width: 220px;
+    max-width: none;
     min-height: 29px;
-    margin-bottom: 9px;
+    margin: 0 14px 9px;
     color: #647168;
     font-size: 9px;
     line-height: 1.5;
 }
 
 .community-card-foot {
-    position: relative;
-    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 8px;
+    padding: 0 14px 14px;
     color: #707e73;
     font-size: 9px;
 }
@@ -2293,8 +2293,8 @@ select:focus-visible {
         padding: 0 8px;
     }
 
-    .community-card {
-        padding: 11px;
+    .community-card-art {
+        height: 96px;
     }
 
     .community-card h3 {

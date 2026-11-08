@@ -43,10 +43,30 @@
 
   let session = {};
 
+  const TAB_LOGOUT_KEY = 'gather.tabLoggedOut';
+
+  function tabToken() {
+    if (sessionStorage.getItem(TAB_LOGOUT_KEY) === '1') return '';
+    const current = sessionStorage.getItem(TOKEN_KEY);
+    if (current) return current;
+    const shared = localStorage.getItem(TOKEN_KEY) || '';
+    if (shared) sessionStorage.setItem(TOKEN_KEY, shared);
+    return shared;
+  }
+
   const api = {
-    token: () => localStorage.getItem(TOKEN_KEY) || '',
-    setToken: token => localStorage.setItem(TOKEN_KEY, token),
-    clear: () => localStorage.removeItem(TOKEN_KEY)
+    token: () => tabToken(),
+    setToken: token => {
+      sessionStorage.removeItem(TAB_LOGOUT_KEY);
+      sessionStorage.setItem(TOKEN_KEY, token);
+      localStorage.setItem(TOKEN_KEY, token);
+    },
+    clear: () => {
+      const current = sessionStorage.getItem(TOKEN_KEY) || '';
+      sessionStorage.removeItem(TOKEN_KEY);
+      sessionStorage.setItem(TAB_LOGOUT_KEY, '1');
+      if (!current || localStorage.getItem(TOKEN_KEY) === current) localStorage.removeItem(TOKEN_KEY);
+    }
   };
 
   const currentUser = () => state.users.find(user => user.id === state.currentUserId) || (state.currentUserId ? null : state.users[0]);
@@ -894,7 +914,10 @@
   }
 
   function bindShell() {
-    document.querySelectorAll('a[href="login.html"]').forEach(link => link.addEventListener('click', () => api.clear()));
+    document.querySelectorAll('a[href="login.html"]').forEach(link => link.addEventListener('click', event => {
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
+      api.clear();
+    }));
     initPhotoUploads();
     initCardArtUploads();
     initFilePlaceholders();
