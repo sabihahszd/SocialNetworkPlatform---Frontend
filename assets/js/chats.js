@@ -1006,7 +1006,7 @@
   function bindShell() {
     document.addEventListener('click', event => {
       const avatarNode = event.target.closest('.avatar[data-user-id]');
-      if (!avatarNode || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      if (!avatarNode || avatarNode.closest('.chat-list-item') || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const userId = avatarNode.dataset.userId;
       if (!userId || userId === 'someone') return;
       event.preventDefault();
@@ -1115,7 +1115,7 @@
   };
 })();
 
-let activeChatId = sessionStorage.getItem('gather.activeChat') || '';
+let activeChatId = '';
 
 function saveActive() {
   try { sessionStorage.setItem('gather.activeChat', activeChatId || ''); }
@@ -1157,15 +1157,15 @@ function renderList() {
     container.innerHTML = matching.map(thread => {
       const person = Gather.userById(thread.participantId);
       const latest = thread.messages.at(-1);
-      return `<button class="chat-list-item ${thread.id === activeChatId ? 'active' : ''}" data-action="select-chat" data-chat-id="${Gather.escapeHTML(thread.id)}">${Gather.avatar(person)}<span class="chat-list-copy"><strong>${Gather.escapeHTML(person.name)}</strong><span>${Gather.escapeHTML(latest?.text || 'Start a conversation')}</span></span><time class="chat-list-time">${latest ? Gather.prettyTime(latest.createdAt) : ''}</time></button>`;
+      const received = receivedCount(thread);
+      const bubble = received ? `<span class="chat-received" aria-label="${received} received">${received}</span>` : '';
+      return `<button class="chat-list-item ${thread.id === activeChatId ? 'active' : ''}" data-action="select-chat" data-chat-id="${Gather.escapeHTML(thread.id)}">${Gather.avatar(person)}<span class="chat-list-copy"><strong>${Gather.escapeHTML(person.name)}</strong><span>${Gather.escapeHTML(latest?.text || 'Start a conversation')}</span></span><span class="chat-list-meta">${bubble}<time class="chat-list-time">${latest ? Gather.prettyTime(latest.createdAt) : ''}</time></span></button>`;
     }).join('') || '<p class="chat-empty-filter">No conversations match that search.</p>';
   });
 }
 
 function renderThread() {
-  if (!Gather.state.chats.length) return;
   document.querySelectorAll('[data-chat-thread]').forEach(container => {
-    if (!Gather.state.chats.some(thread => thread.id === activeChatId)) activeChatId = Gather.state.chats[0]?.id || '';
     const thread = Gather.state.chats.find(item => item.id === activeChatId);
     const draft = container.dataset.activeId === (thread?.id || '')
       ? container.querySelector('[data-chat-form] textarea')?.value
@@ -1177,11 +1177,13 @@ function renderThread() {
       return;
     }
     const person = Gather.userById(thread.participantId);
+    const oldestNewId = oldestNewMessage(thread)?.id || '';
     const messages = thread.messages.map(message => {
       const actions = message.authorId === Gather.state.currentUserId
         ? `<div class="chat-message-actions"><button type="button" data-action="edit-chat-message" data-chat-id="${Gather.escapeHTML(thread.id)}" data-message-id="${Gather.escapeHTML(message.id)}">Edit</button><button type="button" data-action="delete-chat-message" data-chat-id="${Gather.escapeHTML(thread.id)}" data-message-id="${Gather.escapeHTML(message.id)}">Delete</button></div>`
         : '';
-      return `<article class="chat-message ${message.authorId === Gather.state.currentUserId ? 'mine' : ''}">${Gather.escapeHTML(message.text)}${actions}<time>${Gather.prettyTime(message.createdAt)}</time></article>`;
+      const marker = message.id === oldestNewId ? '<p class="chat-new-marker">new</p>' : '';
+      return `${marker}<article class="chat-message ${message.authorId === Gather.state.currentUserId ? 'mine' : ''}">${Gather.escapeHTML(message.text)}${actions}<time>${Gather.prettyTime(message.createdAt)}</time></article>`;
     }).join('');
     container.innerHTML = `<header class="chat-thread-header"><button class="icon-button chat-back" type="button" data-action="chat-back" aria-label="Back to conversations">←</button>${Gather.avatar(person)}<div><strong>${Gather.escapeHTML(person.name)}</strong><span>@${Gather.escapeHTML(person.username)}</span></div></header><div class="chat-message-list" data-chat-message-list>${messages}</div><form class="chat-compose" data-chat-form><textarea name="message" rows="1" maxlength="1000" placeholder="Write a message..." aria-label="Write a message" required></textarea><button class="button button-primary" type="submit">Send</button></form>`;
     container.classList.add('open');
@@ -1208,13 +1210,27 @@ Gather.start({
   },
   async action(name, element) {
     if (name === 'select-chat') {
-      activeChatId = element.dataset.chatId;
+      const chatId = element.dataset.chatId || '';
+      const closing = activeChatId === chatId;
+      const previous = activeChatId;
+      activeChatId = closing ? '' : chatId;
       saveActive();
       render();
+      if (!closing) {
+        refreshThread(chatId).then(() => {
+          if (activeChatId === chatId) render();
+        }).catch(showChatError);
+      }
+      const finished = closing ? chatId : previous;
+      if (finished && finished !== activeChatId) markThreadRead(finished).then(() => render()).catch(showChatError);
       return;
     }
     if (name === 'chat-back') {
-      document.querySelector('[data-chat-thread]')?.classList.remove('open');
+      const previous = activeChatId;
+      activeChatId = '';
+      saveActive();
+      render();
+      if (previous) markThreadRead(previous).then(() => render()).catch(showChatError);
       return;
     }
     if (name === 'new-chat') {
@@ -1401,6 +1417,23 @@ async function loadChats() {
   }
 }
 
+function receivedCount(thread) {
+  return (thread.messages || []).filter(message => message.authorId && message.authorId !== Gather.state.currentUserId).length;
+}
+
+function oldestNewMessage(thread) {
+  return (thread.messages || []).find(message => message.authorId !== Gather.state.currentUserId && message.read !== true);
+}
+
+async function markThreadRead(chatId) {
+  const thread = Gather.state.chats.find(item => item.id === chatId);
+  if (!thread?.messages.some(message => message.authorId !== Gather.state.currentUserId && message.read !== true)) return;
+  await apiFetch(`/api/chats/${encodeURIComponent(chatId)}/read`, { method: 'POST' });
+  Gather.state.chats.find(item => item.id === chatId)?.messages.forEach(message => {
+    if (message.authorId !== Gather.state.currentUserId) message.read = true;
+  });
+}
+
 async function refreshThread(id) {
   if (!id) return null;
   const thread = await apiFetch(`/api/chats/${encodeURIComponent(id)}`);
@@ -1459,15 +1492,7 @@ async function deleteChatMessage(element) {
 document.addEventListener('click', event => {
   const element = event.target.closest('[data-action]');
   if (!element) return;
-  if (element.dataset.action === 'delete-chat-message') {
-    deleteChatMessage(element);
-    return;
-  }
-  if (element.dataset.action !== 'select-chat') return;
-  const chatId = element.dataset.chatId;
-  refreshThread(chatId).then(() => {
-    if (activeChatId === chatId) render();
-  }).catch(showChatError);
+  if (element.dataset.action === 'delete-chat-message') deleteChatMessage(element);
 });
 
 document.addEventListener('submit', event => {
