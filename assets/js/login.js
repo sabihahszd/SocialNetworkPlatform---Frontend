@@ -99,7 +99,8 @@
   };
   const safePhoto = value => /^data:image\/[\w.+-]+;base64,/i.test(value || '') ? value : safeImage(value);
   const safeMediaSource = value => /^data:(?:image|video)\/[\w.+-]+;base64,/i.test(value || '') ? value : safeImage(value);
-  const avatar = (user, extraClass = '') => { const photo = safePhoto(user?.photo); return `<span class="avatar ${escapeHTML(user?.tone || '')} ${extraClass}">${photo ? `<img src="${escapeHTML(photo)}" alt="">` : escapeHTML((user?.name || 'M').slice(0, 1).toUpperCase())}</span>`; };
+  const profileHref = user => user?.id && user.id !== 'someone' ? `profile.html?user=${encodeURIComponent(user.id)}` : 'profile.html';
+  const avatar = (user, extraClass = '') => { const photo = safePhoto(user?.photo); const userId = escapeHTML(user?.id || ''); return `<span class="avatar ${escapeHTML(user?.tone || '')} ${extraClass}" data-user-id="${userId}">${photo ? `<img src="${escapeHTML(photo)}" alt="">` : escapeHTML((user?.name || 'M').slice(0, 1).toUpperCase())}</span>`; };
   const memberCount = value => Number(value || 0).toLocaleString();
   const prettyTime = date => {
     const minutes = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 60000));
@@ -124,7 +125,7 @@
     if (userById(post.authorId).active === false) return false;
     if (post.authorId !== state.currentUserId && isBlocked(post.authorId)) return false;
     if (post.authorId === state.currentUserId || post.privacy === 'public') return true;
-    if (post.privacy === 'communities') return (post.communityIds || []).some(id => isCommunityMember(state.communities.find(community => community.id === id)));
+    if (post.privacy === 'communities') return true;
     return post.privacy === 'friends' && isFriend(post.authorId);
   };
   const findPost = element => {
@@ -381,7 +382,7 @@
       const matchingUsers = state.users.filter(user => user.id !== state.currentUserId && user.active !== false && !isBlocked(user.id) && `${user.name} ${user.username}`.toLowerCase().includes(normalized)).slice(0, 5);
       const matchingCircles = state.communities.filter(circle => `${circle.name} ${circle.description}`.toLowerCase().includes(normalized)).slice(0, 3);
       container.classList.remove('hidden');
-      container.innerHTML = `${matchingUsers.map(user => `<a class="search-result" href="profile.html">${avatar(user)}<strong>${escapeHTML(user.name)}</strong><span>@${escapeHTML(user.username)}</span></a>`).join('')}${matchingCircles.map(circle => `<a class="search-result" href="${communityUrl(circle.id)}"><span class="trend-stamp" style="--stamp:${escapeHTML(circle.color)}">${escapeHTML(circle.emoji)}</span><strong>${escapeHTML(circle.name)}</strong><span>Community</span></a>`).join('')}${matchingUsers.length + matchingCircles.length ? '' : '<p class="subtle">No matches yet.</p>'}`;
+      container.innerHTML = `${matchingUsers.map(user => `<a class="search-result" href="${profileHref(user)}">${avatar(user)}<strong>${escapeHTML(user.name)}</strong><span>@${escapeHTML(user.username)}</span></a>`).join('')}${matchingCircles.map(circle => `<a class="search-result" href="${communityUrl(circle.id)}"><span class="trend-stamp" style="--stamp:${escapeHTML(circle.color)}">${escapeHTML(circle.emoji)}</span><strong>${escapeHTML(circle.name)}</strong><span>Community</span></a>`).join('')}${matchingUsers.length + matchingCircles.length ? '' : '<p class="subtle">No matches yet.</p>'}`;
     });
   }
 
@@ -405,7 +406,14 @@
     };
     const manage = author.id === state.currentUserId ? `<button class="comment-reply-button" type="button" data-action="edit-comment" data-comment-id="${escapeHTML(comment.id)}">Edit</button><button class="comment-reply-button" type="button" data-action="delete-comment" data-comment-id="${escapeHTML(comment.id)}">Delete</button>` : '';
     const replies = includeReplies ? (comment.replies || []).map(reply => renderComment(reply, postId, true)).join('') : '';
-    return `<div class="${nested ? 'comment-reply' : 'comment-item'}" data-comment-id="${escapeHTML(comment.id)}"><div class="post-header"><a href="profile.html" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context">${prettyTime(comment.createdAt)}</span></div></div><p class="post-text">${escapeHTML(comment.text)}</p><div class="comment-tools"><button class="comment-reply-button" type="button" data-action="reply-comment" data-comment-id="${escapeHTML(comment.id)}" data-post-id="${escapeHTML(postId)}">Reply</button>${manage}</div></div>${replies}`;
+    const thread = replies ? `<div class="comment-replies">${replies}</div>` : '';
+    const commentId = escapeHTML(comment.id);
+    const safePostId = escapeHTML(postId);
+    const replyCount = (comment.replies || []).length;
+    const actions = `<div class="post-actions"><button class="post-action" type="button" data-action="comment-like" aria-label="Like"><i class="fa-regular fa-heart"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-repost" aria-label="Repost"><i class="fa-solid fa-retweet"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="open-post" data-post-id="${safePostId}" data-comment-id="${commentId}" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">${replyCount}</span></button><button class="post-action" type="button" data-action="comment-bookmark" aria-label="Save"><i class="fa-regular fa-bookmark"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="share-post" data-post-id="${safePostId}" aria-label="Share"><i class="fa-solid fa-share-nodes"></i></button></div>`;
+    const form = `<form class="comment-form" data-comment-form data-reply-parent="${commentId}"><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form>`;
+    const tools = manage ? `<div class="comment-tools">${manage}</div>` : '';
+    return `<div class="${nested ? 'comment-reply' : 'comment-item'}" data-comment-id="${commentId}"><div class="comment-thread"><div class="comment-rail"><a class="comment-avatar" href="${profileHref(author)}" aria-label="${escapeHTML(author.name)} profile">${avatar(author, 'avatar-small')}</a></div><div class="comment-body"><div class="comment-meta"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><time class="comment-time">${prettyTime(comment.createdAt)}</time></div><p class="comment-text">${escapeHTML(comment.text)}</p>${actions}${form}${tools}${thread}</div></div></div>`;
   }
 
   function renderPost(post, { readOnly = false } = {}) {
@@ -422,14 +430,14 @@
     const actions = readOnly ? '' : `<div class="post-actions"><button class="post-action${liked ? ' liked' : ''}" type="button" data-action="toggle-like" aria-label="${liked ? 'Unlike' : 'Like'} post"><i class="${liked ? 'fa-solid' : 'fa-regular'} fa-heart"></i><span class="action-count">${likes.length}</span></button><button class="post-action${reposted ? ' reposted' : ''}" type="button" data-action="toggle-repost" aria-label="${reposted ? 'Undo repost' : 'Repost'}"><i class="fa-solid fa-retweet"></i><span class="action-count">${reposts.length}</span></button><button class="post-action" type="button" data-action="open-post" data-post-id="${escapeHTML(post.id)}" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">${comments.length}</span></button><button class="post-action${bookmarked ? ' bookmarked' : ''}" type="button" data-action="toggle-bookmark" aria-label="${bookmarked ? 'Unsave post' : 'Save post'}"><i class="${bookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i><span class="action-count">${bookmarks.length}</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share post"><i class="fa-solid fa-share-nodes"></i></button></div>`;
     const commentForm = readOnly ? '' : '<form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form>';
     const audience = post.privacy === 'communities' ? 'Communities' : post.privacy === 'friends' ? 'Friends' : 'Everyone';
-    return `<article class="post-card" data-post-id="${escapeHTML(post.id)}"><div class="post-header"><a href="profile.html" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context"><span class="context-icon">${post.privacy === 'public' ? '✳' : '◎'}</span>${audience} · ${prettyTime(post.createdAt)} <a class="post-open-link" href="home.html?post=${encodeURIComponent(post.id)}">View post</a></span></div><button class="icon-button post-menu" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${escapeHTML(post.text)}</p>${video ? `<video class="post-image" src="${video}" controls preload="metadata" aria-label="Video shared by ${escapeHTML(author.name)}"></video>` : image ? `<img class="post-image" src="${image}" alt="Photo shared by ${escapeHTML(author.name)}" loading="lazy">` : ''}${actions}${comments.length ? `<div class="comment-list">${comments.map(comment => renderComment(comment, post.id)).join('')}</div>` : ''}${commentForm}</article>`;
+    return `<article class="post-card" data-post-id="${escapeHTML(post.id)}"><div class="post-header"><a href="${profileHref(author)}" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context"><span class="context-icon">${post.privacy === 'public' ? '✳' : '◎'}</span>${audience} · ${prettyTime(post.createdAt)} <a class="post-open-link" href="home.html?post=${encodeURIComponent(post.id)}">View post</a></span></div><button class="icon-button post-menu" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${escapeHTML(post.text)}</p>${video ? `<video class="post-image" src="${video}" controls preload="metadata" aria-label="Video shared by ${escapeHTML(author.name)}"></video>` : image ? `<img class="post-image" src="${image}" alt="Photo shared by ${escapeHTML(author.name)}" loading="lazy">` : ''}${actions}${commentForm}${comments.length ? `<div class="comment-list">${comments.map(comment => renderComment(comment, post.id)).join('')}</div>` : ''}</article>`;
   }
 
   function ensurePostActionStyles() {
     if (document.querySelector('[data-post-action-styles]')) return;
     const style = document.createElement('style');
     style.dataset.postActionStyles = '';
-    style.textContent = 'html.reduce-motion *{animation-duration:0s!important;transition:none!important;scroll-behavior:auto!important}input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea{border-radius:10px!important}.gather-action-dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);padding:0;border:1px solid var(--line,#e5e9e3);border-radius:10px;color:var(--ink,#23332e);background:var(--paper,#fff);box-shadow:0 12px 40px rgba(25,50,38,.15)}.gather-action-dialog::backdrop{background:rgba(28,45,37,.45);backdrop-filter:blur(3px)}.gather-action-content{position:relative;display:grid;gap:11px;padding:28px}.gather-action-content h2{margin:0;font-size:22px}.gather-action-content .modal-copy{margin:0 0 3px;color:var(--muted,#7a8780);font-size:12px}.gather-action-options{display:grid;gap:8px}.gather-action-options a{text-align:center}.gather-action-section-title{margin:4px 0 0;color:var(--muted,#7a8780);font-size:10px;font-weight:700;text-transform:uppercase}.gather-action-notice{min-height:16px;margin:0;color:var(--forest-deep,#58476f);font-size:11px}.gather-action-dialog .field-label{margin:0}.gather-action-dialog .field-label input{width:100%}.post-action.liked{color:var(--forest-deep,#58476f)}.post-action.reposted{color:var(--forest-deep,#58476f)}.post-action.bookmarked{color:var(--forest-deep,#58476f)}.comment-content{display:flex;align-items:flex-start;gap:8px}.comment-tools,.chat-message-actions{display:flex;gap:10px;margin-top:4px}.comment-tools button,.chat-message-actions button{padding:0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;opacity:.76}.comment-tools button:hover,.chat-message-actions button:hover{opacity:1;text-decoration:underline}.chat-message-actions{justify-content:flex-end}.inline-edit-form{display:grid;gap:6px}.inline-edit-form textarea{width:100%;padding:7px;border:1px solid var(--line,#e5e9e3);background:white;font:inherit;border-radius:10px!important}.inline-edit-form>div{display:flex;justify-content:flex-end;gap:9px}.inline-edit-form button{padding:2px 0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;font-weight:700}.banner-photo-preview{width:100%;height:82px;border-radius:8px;object-fit:cover;background:#efeaf5}.brand-mark img,.auth-logo-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.admin-brand-form{display:grid;gap:12px;max-width:560px}.admin-member-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.post-action i{font-size:16px;line-height:1;pointer-events:none}.post-card{cursor:pointer}.post-card .comment-list,.post-card .comment-form{display:none!important}[data-home-post-detail] .comment-list{display:grid!important}[data-home-post-detail] .comment-form{display:flex!important}.post-action.reposted{color:#806c9c}.post-action .action-count{min-width:1ch;font-size:12px;font-weight:600;line-height:1}.share-chat-list{display:grid;gap:4px}.share-chat{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border:0;border-radius:10px;color:inherit;background:transparent;cursor:pointer;text-align:left}.share-chat:hover{background:var(--leaf-pale,#f2ecf8)}.share-chat .avatar{width:36px;height:36px;font-size:13px}.share-chat-copy{display:grid;min-width:0;flex:1}.share-chat-copy span,.share-chat-kind{color:var(--muted,#7a8780);font-size:11px}.share-platforms{display:flex;gap:10px;margin-top:8px}.share-platforms a,.share-platforms button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line,#e6e1ee);border-radius:50%;color:#806c9c;background:#fff;font-size:16px;text-decoration:none;cursor:pointer}.share-platforms a:hover,.share-platforms button:hover{background:var(--leaf-pale,#f2ecf8)}input[type="file"]::file-selector-button,input[type="file"]::-webkit-file-upload-button{margin-right:10px;padding:0 14px;height:32px;border:1px solid #e4dced;border-radius:20px;color:var(--forest,#806c9c);background:#fff;cursor:pointer;font:inherit;font-size:11px;font-weight:700;transition:background .16s ease}input[type="file"]::file-selector-button:hover,input[type="file"]::-webkit-file-upload-button:hover{background:#f4f0f8}.field-label input[type="file"],.auth-form .field-label input[type="file"],.register-form-wrap .auth-form .field-label input[type="file"]{min-height:32px;padding:0;border:0;background:transparent;font-size:12px;font-weight:400}.fa-regular.fa-house{width:1em;height:1em;font-size:1.22em;vertical-align:-.2em}.fa-regular.fa-house::before{content:"" !important;display:block;width:1em;height:1em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat}.file-placeholder-mark{position:relative;display:grid;place-items:center;min-height:112px;overflow:hidden;border-radius:10px;background:#e3e1e6 center/cover no-repeat;color:#8a8491;font-size:22px}.file-placeholder:has([data-avatar-file]) .file-placeholder-mark{width:112px}.file-placeholder-mark:hover{background-color:#d8d5db}.file-placeholder-mark i{pointer-events:none}.file-placeholder.has-file .file-placeholder-mark i{display:none}.file-placeholder-mark input[type="file"]{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}.file-placeholder.has-file+.photo-preview,.file-placeholder.has-file+.card-art-banner,.file-placeholder.has-file+.banner-photo-preview{display:none!important}.trends-section .trend-stamp{overflow:hidden;background-color:var(--stamp,#e1d5f0);background-position:center 48%;background-size:cover;background-repeat:no-repeat;color:transparent;font-size:0}';
+    style.textContent = 'html.reduce-motion *{animation-duration:0s!important;transition:none!important;scroll-behavior:auto!important}input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea{border-radius:10px!important}.gather-action-dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);padding:0;border:1px solid var(--line,#e5e9e3);border-radius:10px;color:var(--ink,#23332e);background:var(--paper,#fff);box-shadow:0 12px 40px rgba(25,50,38,.15)}.gather-action-dialog::backdrop{background:rgba(28,45,37,.45);backdrop-filter:blur(3px)}.gather-action-content{position:relative;display:grid;gap:11px;padding:28px}.gather-action-content h2{margin:0;font-size:22px}.gather-action-content .modal-copy{margin:0 0 3px;color:var(--muted,#7a8780);font-size:12px}.gather-action-options{display:grid;gap:8px}.gather-action-options a{text-align:center}.gather-action-section-title{margin:4px 0 0;color:var(--muted,#7a8780);font-size:10px;font-weight:700;text-transform:uppercase}.gather-action-notice{min-height:16px;margin:0;color:var(--forest-deep,#58476f);font-size:11px}.gather-action-dialog .field-label{margin:0}.gather-action-dialog .field-label input{width:100%}.post-action.liked{color:var(--forest-deep,#58476f)}.post-action.reposted{color:var(--forest-deep,#58476f)}.post-action.bookmarked{color:var(--forest-deep,#58476f)}.comment-content{display:flex;align-items:flex-start;gap:8px}.comment-tools,.chat-message-actions{display:flex;gap:10px;margin-top:4px}.comment-tools button,.chat-message-actions button{padding:0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;opacity:.76}.comment-tools button:hover,.chat-message-actions button:hover{opacity:1;text-decoration:underline}.chat-message-actions{justify-content:flex-end}.inline-edit-form{display:grid;gap:6px}.inline-edit-form textarea{width:100%;padding:7px;border:1px solid var(--line,#e5e9e3);background:white;font:inherit;border-radius:10px!important}.inline-edit-form>div{display:flex;justify-content:flex-end;gap:9px}.inline-edit-form button{padding:2px 0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;font-weight:700}.banner-photo-preview{width:100%;height:82px;border-radius:8px;object-fit:cover;background:#efeaf5}.brand-mark img,.auth-logo-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.admin-brand-form{display:grid;gap:12px;max-width:560px}.admin-member-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.post-action i{font-size:16px;line-height:1;pointer-events:none}.post-card{cursor:pointer}.post-card .comment-list{display:none!important}[data-home-post-detail] .comment-list{display:grid!important}.comment-form{display:none!important}.comment-form.is-open{display:flex!important}.avatar[data-user-id]{cursor:pointer}.post-action.reposted{color:#806c9c}.post-action .action-count{min-width:1ch;font-size:12px;font-weight:600;line-height:1}.share-chat-list{display:grid;gap:4px}.share-chat{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border:0;border-radius:10px;color:inherit;background:transparent;cursor:pointer;text-align:left}.share-chat:hover{background:var(--leaf-pale,#f2ecf8)}.share-chat .avatar{width:36px;height:36px;font-size:13px}.share-chat-copy{display:grid;min-width:0;flex:1}.share-chat-copy span,.share-chat-kind{color:var(--muted,#7a8780);font-size:11px}.share-platforms{display:flex;gap:10px;margin-top:8px}.share-platforms a,.share-platforms button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line,#e6e1ee);border-radius:50%;color:#806c9c;background:#fff;font-size:16px;text-decoration:none;cursor:pointer}.share-platforms a:hover,.share-platforms button:hover{background:var(--leaf-pale,#f2ecf8)}input[type="file"]::file-selector-button,input[type="file"]::-webkit-file-upload-button{margin-right:10px;padding:0 14px;height:32px;border:1px solid #e4dced;border-radius:20px;color:var(--forest,#806c9c);background:#fff;cursor:pointer;font:inherit;font-size:11px;font-weight:700;transition:background .16s ease}input[type="file"]::file-selector-button:hover,input[type="file"]::-webkit-file-upload-button:hover{background:#f4f0f8}.field-label input[type="file"],.auth-form .field-label input[type="file"],.register-form-wrap .auth-form .field-label input[type="file"]{min-height:32px;padding:0;border:0;background:transparent;font-size:12px;font-weight:400}.fa-regular.fa-house{width:1em;height:1em;font-size:1.22em;vertical-align:-.2em}.fa-regular.fa-house::before{content:"" !important;display:block;width:1em;height:1em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat}.file-placeholder-mark{position:relative;display:grid;place-items:center;min-height:112px;overflow:hidden;border-radius:10px;background:#e3e1e6 center/cover no-repeat;color:#8a8491;font-size:22px}.file-placeholder:has([data-avatar-file]) .file-placeholder-mark{width:112px}.file-placeholder-mark:hover{background-color:#d8d5db}.file-placeholder-mark i{pointer-events:none}.file-placeholder.has-file .file-placeholder-mark i{display:none}.file-placeholder-mark input[type="file"]{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}.file-placeholder.has-file+.photo-preview,.file-placeholder.has-file+.card-art-banner,.file-placeholder.has-file+.banner-photo-preview{display:none!important}.trends-section .trend-stamp{overflow:hidden;background-color:var(--stamp,#e1d5f0);background-position:center 48%;background-size:cover;background-repeat:no-repeat;color:transparent;font-size:0}';
     document.head.append(style);
   }
 
@@ -624,23 +632,81 @@
         adjustCount(element, saved ? 1 : -1);
         return true;
       }
+      case 'comment-like': {
+        const liked = element.classList.toggle('liked');
+        element.setAttribute('aria-label', liked ? 'Unlike' : 'Like');
+        const icon = element.querySelector('i');
+        if (icon) {
+          icon.classList.toggle('fa-solid', liked);
+          icon.classList.toggle('fa-regular', !liked);
+        }
+        adjustCount(element, liked ? 1 : -1);
+        return true;
+      }
+      case 'comment-repost': {
+        const reposted = element.classList.toggle('reposted');
+        element.setAttribute('aria-label', reposted ? 'Undo repost' : 'Repost');
+        adjustCount(element, reposted ? 1 : -1);
+        return true;
+      }
+      case 'comment-bookmark': {
+        const saved = element.classList.toggle('bookmarked');
+        element.setAttribute('aria-label', saved ? 'Unsave' : 'Save');
+        const icon = element.querySelector('i');
+        if (icon) {
+          icon.classList.toggle('fa-solid', saved);
+          icon.classList.toggle('fa-regular', !saved);
+        }
+        adjustCount(element, saved ? 1 : -1);
+        return true;
+      }
       case 'open-post': {
+        const commentHost = element.closest('.comment-item, .comment-reply');
+        if (commentHost) {
+          const form = commentHost.querySelector(':scope > .comment-thread > .comment-body > [data-comment-form]');
+          if (form) {
+            const opening = !form.classList.contains('is-open');
+            form.classList.toggle('is-open', opening);
+            if (opening) form.querySelector('input')?.focus();
+          }
+          return true;
+        }
         const card = element.closest('.post-card');
         const id = element.dataset.postId || card?.dataset.postId;
         if (!id) return true;
+        const viewing = new URLSearchParams(window.location.search).get('post') === id && card?.closest('[data-home-post-detail]');
+        if (viewing) {
+          const form = card.querySelector(':scope > [data-comment-form]');
+          if (form) {
+            const opening = !form.classList.contains('is-open');
+            form.classList.toggle('is-open', opening);
+            if (opening) form.querySelector('input')?.focus();
+          }
+          return true;
+        }
         if (card) sessionStorage.setItem(`gather.post.${id}`, card.outerHTML);
         window.location.href = `home.html?post=${encodeURIComponent(id)}`;
         return true;
       }
-      case 'focus-comment':
-        element.closest('.post-card')?.querySelector('[name="comment"]')?.focus();
-        return true;
-      case 'reply-comment': {
-        const form = element.closest('.post-card')?.querySelector('[data-comment-form]');
+      case 'focus-comment': {
+        const form = element.closest('.post-card')?.querySelector(':scope > [data-comment-form]');
         if (form) {
-          form.dataset.replyParent = element.dataset.commentId;
-          form.querySelector('input').placeholder = 'Write a reply...';
-          form.querySelector('input').focus();
+          form.classList.add('is-open');
+          form.querySelector('[name="comment"]')?.focus();
+        }
+        return true;
+      }
+      case 'reply-comment': {
+        const host = element.closest('.comment-item, .comment-reply');
+        const form = host?.querySelector(':scope > .comment-thread > .comment-body > [data-comment-form]') || element.closest('.post-card')?.querySelector(':scope > [data-comment-form]');
+        if (form) {
+          if (element.dataset.commentId) form.dataset.replyParent = element.dataset.commentId;
+          form.classList.add('is-open');
+          const input = form.querySelector('input');
+          if (input) {
+            input.placeholder = 'Write a reply...';
+            input.focus();
+          }
         }
         return true;
       }
@@ -650,7 +716,7 @@
         const comment = post && findComment(post.comments, element.dataset.commentId);
         if (!comment || comment.authorId !== state.currentUserId) return true;
         if (name === 'edit-comment') {
-          const textNode = element.closest('.comment-item, .comment-reply')?.querySelector('.post-text');
+          const textNode = element.closest('.comment-item, .comment-reply')?.querySelector('.comment-text');
           if (!textNode) return true;
           const form = document.createElement('form');
           form.className = 'inline-edit-form';
@@ -892,28 +958,44 @@
     if (!list) {
       list = document.createElement('div');
       list.className = 'comment-list';
-      form.before(list);
+      form.after(list);
     }
     const author = currentUser();
     const item = document.createElement('div');
     item.className = 'comment-item';
-    item.innerHTML = `<div class="post-header"><a href="profile.html" aria-label="${escapeHTML(author?.name || 'Profile')} profile">${author ? avatar(author) : '<span class="avatar"></span>'}</a><div class="post-author"><strong>${escapeHTML(author?.name || '')}</strong><span class="handle">@${escapeHTML(author?.username || '')}</span><span class="post-context">just now</span></div></div><p class="post-text">${escapeHTML(text)}</p><div class="comment-tools"><button class="comment-reply-button" type="button" data-action="reply-comment">Reply</button></div>`;
-    const parent = list.querySelector('.comment-item:last-child');
-    if (form.dataset.replyParent && parent) {
+    item.innerHTML = `<div class="comment-thread"><div class="comment-rail"><a class="comment-avatar" href="${profileHref(author)}" aria-label="${escapeHTML(author?.name || 'Profile')} profile">${author ? avatar(author, 'avatar-small') : '<span class="avatar avatar-small"></span>'}</a></div><div class="comment-body"><div class="comment-meta"><strong>${escapeHTML(author?.name || '')}</strong><span class="handle">@${escapeHTML(author?.username || '')}</span><time class="comment-time">just now</time></div><p class="comment-text">${escapeHTML(text)}</p><div class="post-actions"><button class="post-action" type="button" data-action="comment-like" aria-label="Like"><i class="fa-regular fa-heart"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-repost" aria-label="Repost"><i class="fa-solid fa-retweet"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="open-post" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-bookmark" aria-label="Save"><i class="fa-regular fa-bookmark"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share"><i class="fa-solid fa-share-nodes"></i></button></div><form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form></div></div></div>`;
+    const parentId = form.dataset.replyParent;
+    const parent = parentId ? card.querySelector(`[data-comment-id="${CSS.escape(parentId)}"]`) : null;
+    if (parent) {
+      let repliesWrap = parent.querySelector(':scope > .comment-thread > .comment-body > .comment-replies');
+      if (!repliesWrap) {
+        repliesWrap = document.createElement('div');
+        repliesWrap.className = 'comment-replies';
+        parent.querySelector(':scope > .comment-thread > .comment-body')?.append(repliesWrap);
+      }
       const reply = document.createElement('div');
       reply.className = 'comment-reply';
       reply.innerHTML = item.innerHTML;
-      parent.append(reply);
+      repliesWrap.append(reply);
     } else list.append(item);
     delete form.dataset.replyParent;
     input.value = '';
     if (input) input.placeholder = 'Add a thoughtful reply...';
-    const replyButton = card.querySelector('[data-action="open-post"]');
+    const replyButton = (parent || card).querySelector('[data-action="open-post"]');
     if (replyButton) adjustCount(replyButton, 1);
     return true;
   }
 
   function bindShell() {
+    document.addEventListener('click', event => {
+      const avatarNode = event.target.closest('.avatar[data-user-id]');
+      if (!avatarNode || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const userId = avatarNode.dataset.userId;
+      if (!userId || userId === 'someone') return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      window.location.href = `profile.html?user=${encodeURIComponent(userId)}`;
+    }, true);
     document.querySelectorAll('a[href="login.html"]').forEach(link => link.addEventListener('click', event => {
       if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || event.button !== 0) return;
       api.clear();
