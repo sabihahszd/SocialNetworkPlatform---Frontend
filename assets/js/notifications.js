@@ -365,6 +365,8 @@
     const unread = state.notifications.filter(item => !item.read).length;
     const requests = state.notifications.filter(item => item.type === 'friend-request' && item.status === 'pending').length;
     document.querySelectorAll('[data-notification-count]').forEach(node => { node.textContent = unread || ''; });
+    const chatsWithNew = state.chats.filter(thread => (thread.messages || []).some(message => message.authorId && message.authorId !== state.currentUserId && message.read !== true)).length;
+    document.querySelectorAll('a.nav-link[href="chats.html"] [data-chat-count]').forEach(node => { node.textContent = chatsWithNew || ''; });
     document.querySelectorAll('[data-request-count]').forEach(node => {
       node.textContent = requests;
       node.classList.toggle('hidden', !requests);
@@ -1240,12 +1242,13 @@ async function loadNotifications() {
     rememberUser(me);
     Gather.renderShell();
 
-    const [site, settings, users, communities, notifications] = await Promise.all([
+    const [site, settings, users, communities, notifications, chats] = await Promise.all([
       apiFetch('/api/site'),
       apiFetch('/api/settings'),
       apiFetch('/api/users'),
       apiFetch('/api/communities'),
-      apiFetch('/api/notifications')
+      apiFetch('/api/notifications'),
+      apiFetch('/api/chats').catch(() => [])
     ]);
 
     Gather.state.currentUserId = me.id;
@@ -1255,6 +1258,11 @@ async function loadNotifications() {
     if (settings) Object.assign(Gather.appSettings, settings);
     Gather.state.communities = communities || [];
     Gather.state.notifications = notifications || [];
+    Gather.state.chats = (chats || []).map(thread => ({
+      id: thread.id,
+      participantId: thread.participantId,
+      messages: thread.messages || []
+    }));
     paintNotifications();
   } catch (error) {
     showNotificationError(error);

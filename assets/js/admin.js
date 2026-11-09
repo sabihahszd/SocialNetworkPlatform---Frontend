@@ -365,6 +365,8 @@
     const unread = state.notifications.filter(item => !item.read).length;
     const requests = state.notifications.filter(item => item.type === 'friend-request' && item.status === 'pending').length;
     document.querySelectorAll('[data-notification-count]').forEach(node => { node.textContent = unread || ''; });
+    const chatsWithNew = state.chats.filter(thread => (thread.messages || []).some(message => message.authorId && message.authorId !== state.currentUserId && message.read !== true)).length;
+    document.querySelectorAll('a.nav-link[href="chats.html"] [data-chat-count]').forEach(node => { node.textContent = chatsWithNew || ''; });
     document.querySelectorAll('[data-request-count]').forEach(node => {
       node.textContent = requests;
       node.classList.toggle('hidden', !requests);
@@ -1435,14 +1437,15 @@ async function loadAdmin() {
       return;
     }
 
-    const [site, settings, members, posts, reports, communities, notifications] = await Promise.all([
+    const [site, settings, members, posts, reports, communities, notifications, chats] = await Promise.all([
       apiFetch('/api/admin/site'),
       apiFetch('/api/settings'),
       apiFetch('/api/admin/members'),
       apiFetch('/api/admin/posts'),
       apiFetch('/api/admin/reports'),
       apiFetch('/api/admin/communities'),
-      apiFetch('/api/notifications')
+      apiFetch('/api/notifications'),
+      apiFetch('/api/chats').catch(() => [])
     ]);
 
     if (site) Gather.state.site = { ...Gather.state.site, ...site };
@@ -1453,6 +1456,11 @@ async function loadAdmin() {
     Gather.state.reports = reports || [];
     Gather.state.communities = communities || [];
     Gather.state.notifications = notifications || [];
+    Gather.state.chats = (chats || []).map(thread => ({
+      id: thread.id,
+      participantId: thread.participantId,
+      messages: thread.messages || []
+    }));
     paintAdmin();
   } catch (error) {
     if (error.status === 403 || (Gather.state.currentUserId && !Gather.isAdmin())) {

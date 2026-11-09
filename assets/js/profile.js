@@ -365,6 +365,8 @@
     const unread = state.notifications.filter(item => !item.read).length;
     const requests = state.notifications.filter(item => item.type === 'friend-request' && item.status === 'pending').length;
     document.querySelectorAll('[data-notification-count]').forEach(node => { node.textContent = unread || ''; });
+    const chatsWithNew = state.chats.filter(thread => (thread.messages || []).some(message => message.authorId && message.authorId !== state.currentUserId && message.read !== true)).length;
+    document.querySelectorAll('a.nav-link[href="chats.html"] [data-chat-count]').forEach(node => { node.textContent = chatsWithNew || ''; });
     document.querySelectorAll('[data-request-count]').forEach(node => {
       node.textContent = requests;
       node.classList.toggle('hidden', !requests);
@@ -602,6 +604,30 @@
     return cards.find(card => card.getClientRects().length) || cards[0] || null;
   }
 
+  function openShareDialog({ title, copy, url, postId = '', linkLabel = 'Link' }) {
+    ensureShareModal();
+    const dialog = document.querySelector('[data-share-modal]');
+    dialog.dataset.postId = postId;
+    dialog.dataset.shareUrl = url;
+    const heading = dialog.querySelector('h2');
+    if (heading) heading.textContent = title;
+    const copyNode = dialog.querySelector('.modal-copy');
+    if (copyNode) copyNode.textContent = copy;
+    const wrap = document.querySelector('[data-share-url-wrap]');
+    if (wrap?.firstChild) wrap.firstChild.textContent = linkLabel;
+    const encodedUrl = encodeURIComponent(url);
+    const chatIds = new Set(state.chats.map(thread => thread.participantId));
+    const shareTargets = [
+      ...state.chats.map(thread => ({ user: userById(thread.participantId) })),
+      ...state.friends.filter(friendId => !chatIds.has(friendId)).map(friendId => ({ user: userById(friendId) }))
+    ].filter(target => target.user?.id && target.user.id !== 'someone');
+    const shareList = shareTargets.length ? `<div class="share-chat-list">${shareTargets.map(target => `<div class="share-chat">${avatar(target.user)}<span class="share-chat-copy"><strong>${escapeHTML(target.user.name)}</strong><span>@${escapeHTML(target.user.username)}</span></span><button class="share-send" type="button" data-action="share-to-chat" data-user-id="${escapeHTML(target.user.id)}">Send</button></div>`).join('')}</div>` : '';
+    document.querySelector('[data-share-options]').innerHTML = `${shareList}<div class="share-platforms"><button type="button" data-action="share-copy" data-url="${escapeHTML(url)}" aria-label="Copy link"><i class="fa-regular fa-clone"></i></button><a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on Facebook"><i class="fa-brands fa-facebook"></i></a><a href="https://twitter.com/intent/tweet?url=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on X"><i class="fa-brands fa-x-twitter"></i></a><a href="https://wa.me/?text=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on WhatsApp"><i class="fa-brands fa-whatsapp"></i></a></div>`;
+    document.querySelector('[data-share-notice]').textContent = '';
+    wrap?.classList.add('hidden');
+    dialog.showModal();
+  }
+
   async function handleShellAction(name, element, event) {
     switch (name) {
       case 'toggle-like': {
@@ -746,33 +772,38 @@
         const post = findPost(element);
         const id = post?.id || element.closest('.post-card')?.dataset.postId;
         if (!id) return true;
-        ensureShareModal();
-        const dialog = document.querySelector('[data-share-modal]');
-        dialog.dataset.postId = id;
-        const copy = dialog.querySelector('.modal-copy');
-        if (copy) copy.textContent = 'Send it to a friend or group, or share the link.';
-        const url = new URL(`home.html?post=${encodeURIComponent(id)}`, window.location.href).href;
-        const encodedUrl = encodeURIComponent(url);
-        const chatIds = new Set(state.chats.map(thread => thread.participantId));
-        const shareTargets = [
-          ...state.chats.map(thread => ({ user: userById(thread.participantId), kind: 'Chat' })),
-          ...state.friends.filter(friendId => !chatIds.has(friendId)).map(friendId => ({ user: userById(friendId), kind: 'Friend' }))
-        ].filter(target => target.user?.id && target.user.id !== 'someone');
-        const shareList = shareTargets.length ? `<div class="share-chat-list">${shareTargets.map(target => `<div class="share-chat">${avatar(target.user)}<span class="share-chat-copy"><strong>${escapeHTML(target.user.name)}</strong><span>@${escapeHTML(target.user.username)}</span></span><button class="share-send" type="button" data-action="share-to-chat" data-user-id="${escapeHTML(target.user.id)}">Send</button></div>`).join('')}</div>` : '';
-        document.querySelector('[data-share-options]').innerHTML = `${shareList}<div class="share-platforms"><button type="button" data-action="share-copy" data-url="${escapeHTML(url)}" aria-label="Copy link"><i class="fa-regular fa-clone"></i></button><a href="https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on Facebook"><i class="fa-brands fa-facebook"></i></a><a href="https://twitter.com/intent/tweet?url=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on X"><i class="fa-brands fa-x-twitter"></i></a><a href="https://wa.me/?text=${encodedUrl}" target="_blank" rel="noopener" aria-label="Share on WhatsApp"><i class="fa-brands fa-whatsapp"></i></a></div>`;
-        document.querySelector('[data-share-notice]').textContent = '';
-        document.querySelector('[data-share-url-wrap]')?.classList.add('hidden');
-        dialog.showModal();
+        openShareDialog({
+          title: 'Share this post',
+          copy: 'Send it to a friend or group, or share the link.',
+          url: new URL(`home.html?post=${encodeURIComponent(id)}`, window.location.href).href,
+          postId: id,
+          linkLabel: 'Post link'
+        });
+        return true;
+      }
+      case 'share-profile': {
+        const optionsDialog = document.querySelector('[data-user-options-modal]');
+        const userId = element.dataset.userId || optionsDialog?.dataset.userId || state.currentUserId;
+        optionsDialog?.close();
+        if (!userId) return true;
+        openShareDialog({
+          title: 'Share this profile',
+          copy: 'Send it to a friend or group, or share the link.',
+          url: new URL(`profile.html?user=${encodeURIComponent(userId)}`, window.location.href).href,
+          linkLabel: 'Profile link'
+        });
         return true;
       }
       case 'share-copy': {
         const url = element.dataset.url;
         if (!url) return true;
-        const notice = element.closest('dialog')?.querySelector('[data-share-notice]');
+        const dialog = element.closest('dialog');
+        const notice = dialog?.querySelector('[data-share-notice]');
+        const fallback = dialog?.dataset.postId ? 'Select and copy the post link.' : 'Select and copy the profile link.';
         if (navigator.clipboard?.writeText) {
           try { await navigator.clipboard.writeText(url); if (notice) notice.textContent = 'Link copied'; }
-          catch { showShareUrlFallback(url); }
-        } else showShareUrlFallback(url);
+          catch { showShareUrlFallback(url, fallback); }
+        } else showShareUrlFallback(url, fallback);
         return true;
       }
       case 'share-to-chat': {
@@ -1221,11 +1252,32 @@ function render() {
   const user = viewedUser();
   const own = viewingOwnProfile();
   document.querySelector('[data-action="edit-profile"]')?.classList.toggle('hidden', !own || !user);
-  const options = document.querySelector('.profile-header-actions [data-action="user-options"]');
-  if (options) {
-    options.dataset.userId = !own && user ? user.id : '';
-    options.dataset.userName = user?.name || '';
-    options.dataset.handle = user ? `@${user.username}` : '';
+  document.querySelector('[data-profile-composer]')?.classList.toggle('hidden', !own || !user);
+  const composerText = document.querySelector('#post-text');
+  if (composerText && own && user && document.activeElement !== composerText) {
+    composerText.placeholder = `What’s on your mind, ${user.name.split(' ')[0]}?`;
+  }
+  const menu = document.querySelector('[data-profile-menu]');
+  if (menu) {
+    if (own && user) {
+      menu.className = 'profile-share';
+      menu.dataset.action = 'share-profile';
+      menu.dataset.userId = user.id;
+      menu.removeAttribute('data-user-name');
+      menu.removeAttribute('data-handle');
+      menu.setAttribute('aria-label', 'Share profile');
+      menu.innerHTML = '<i class="fa-solid fa-share-nodes"></i>';
+      menu.classList.remove('hidden');
+    } else {
+      menu.className = 'icon-button';
+      menu.dataset.action = 'user-options';
+      menu.dataset.userId = user?.id || '';
+      menu.dataset.userName = user?.name || '';
+      menu.dataset.handle = user ? `@${user.username}` : '';
+      menu.setAttribute('aria-label', 'Profile options');
+      menu.textContent = '···';
+      menu.classList.toggle('hidden', !user);
+    }
   }
   if (!user) {
     if (!Gather.state.currentUserId && !Gather.state.users.length) return;
@@ -1282,7 +1334,7 @@ function ensureUserOptions() {
   const dialog = document.createElement('dialog');
   dialog.className = 'gather-action-dialog';
   dialog.dataset.userOptionsModal = '';
-  dialog.innerHTML = '<div class="gather-action-content"><button class="modal-close" type="button" data-action="close-dialog" aria-label="Close">×</button><h2>Profile options</h2><div class="gather-action-options"><button class="button button-secondary" type="button" data-action="block-user">Block</button><button class="button button-secondary" type="button" data-action="report-user">Report</button></div></div>';
+  dialog.innerHTML = '<div class="gather-action-content"><button class="modal-close" type="button" data-action="close-dialog" aria-label="Close">×</button><h2>Profile options</h2><div class="gather-action-options"><button class="button button-secondary" type="button" data-action="share-profile">Share profile</button><button class="button button-secondary" type="button" data-action="block-user">Block</button><button class="button button-secondary" type="button" data-action="report-user">Report</button></div></div>';
   document.body.append(dialog);
 }
 
@@ -1423,7 +1475,8 @@ const profileActions = new Set([
   'submit-report',
   'toggle-community',
   'save-profile',
-  'block-user'
+  'block-user',
+  'create-post'
 ]);
 
 function showProfileError(element, error) {
@@ -1595,7 +1648,36 @@ async function runProfileAction(element, work) {
   }
 }
 
+async function submitProfilePost() {
+  const textInput = document.querySelector('#post-text');
+  const text = textInput?.value.trim();
+  const notice = document.querySelector('[data-post-media-notice]');
+  if (!text) return;
+
+  const audience = document.querySelector('#post-privacy')?.value || 'public';
+  const preview = document.querySelector('[data-post-media-preview] img, [data-post-media-preview] video');
+  const body = { text, privacy: audience === 'friends' ? 'friends' : 'public', image: '', video: '' };
+  if (preview instanceof HTMLVideoElement) body.video = preview.src;
+  else if (preview?.src) body.image = preview.src;
+
+  try {
+    const post = await apiFetch('/api/posts', { method: 'POST', body: JSON.stringify(body) });
+    if (!post) return;
+    upsertPost(post);
+    textInput.value = '';
+    Gather.clearMediaInput(document.querySelector('#post-image'), '[data-post-media-preview]', '[data-post-media-notice]');
+    render();
+  } catch (error) {
+    if (notice) notice.textContent = error?.message === 'Failed to fetch' ? 'The server could not be reached.' : (error?.message || 'The post could not be shared.');
+  }
+}
+
 async function handleProfileAction(name, element) {
+  if (name === 'create-post') {
+    await submitProfilePost();
+    return;
+  }
+
   const postId = element.dataset.postId || element.closest('[data-post-id]')?.dataset.postId;
 
   if (name === 'save-profile') {

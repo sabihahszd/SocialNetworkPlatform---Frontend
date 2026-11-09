@@ -370,6 +370,8 @@
     const unread = state.notifications.filter(item => !item.read).length;
     const requests = state.notifications.filter(item => item.type === 'friend-request' && item.status === 'pending').length;
     document.querySelectorAll('[data-notification-count]').forEach(node => { node.textContent = unread || ''; });
+    const chatsWithNew = state.chats.filter(thread => (thread.messages || []).some(message => message.authorId && message.authorId !== state.currentUserId && message.read !== true)).length;
+    document.querySelectorAll('a.nav-link[href="chats.html"] [data-chat-count]').forEach(node => { node.textContent = chatsWithNew || ''; });
     document.querySelectorAll('[data-request-count]').forEach(node => {
       node.textContent = requests;
       node.classList.toggle('hidden', !requests);

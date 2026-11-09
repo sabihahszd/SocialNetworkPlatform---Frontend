@@ -34,7 +34,7 @@
                     href="explore.html"><span class="nav-icon"><i class="fa-brands fa-sistrix"></i></span>Explore</a><a
                     class="nav-link" href="community.html"><span class="nav-icon"><i
                             class="fa-solid fa-users"></i></span>Community</a><a class="nav-link"
-                    href="chats.html"><span class="nav-icon"><i class="fa-regular fa-comments"></i></span>Chats</a><a
+                    href="chats.html"><span class="nav-icon"><i class="fa-regular fa-comments"></i></span>Chats<span class="nav-badge" data-chat-count></span></a><a
                     class="nav-link" href="bookmarks.html"><span class="nav-icon"><i
                             class="fa-regular fa-bookmark"></i></span>Bookmarks</a><a class="nav-link"
                     href="notifications.html"><span class="nav-icon"><i
@@ -67,7 +67,7 @@
                 <div class="profile-actions">
                     <div class="avatar avatar-xl" data-profile-avatar>M</div>
                     <div class="profile-header-actions"><button class="icon-button" type="button"
-                            data-action="user-options" data-user-name=""
+                            data-profile-menu data-action="user-options" data-user-name=""
                             aria-label="Profile options">···</button><button class="button button-secondary"
                             data-action="edit-profile">Edit profile</button></div>
                 </div>
@@ -88,6 +88,19 @@
                     data-profile-tab="reposts">Reposts</button><button class="feed-tab"
                     data-profile-tab="likes">Likes</button></div>
             <section class="profile-content" data-profile-content="posts">
+                <section class="composer hidden" data-profile-composer aria-label="Create a post">
+                    <a class="avatar" href="profile.html"></a>
+                    <div class="composer-main"><a class="composer-identity" href="profile.html"><strong></strong><span></span></a><textarea id="post-text" placeholder="What’s on your mind?" rows="2" aria-label="Post text"></textarea>
+                        <div class="composer-bottom">
+                            <div class="composer-tools"><label class="privacy-select"><select id="post-privacy" aria-label="Post audience">
+                                        <option value="public">Everyone</option>
+                                        <option value="friends">Friends only</option>
+                                    </select></label><label class="icon-button attach-button" title="Attach a photo or video"><i class="fa-regular fa-image"></i><input id="post-image" type="file" accept="image/*,video/*" data-post-media aria-label="Attach a photo or video"></label></div><button class="button button-primary" data-action="create-post">Share post</button>
+                        </div>
+                        <div class="media-preview" data-post-media-preview hidden></div>
+                        <p class="media-notice" data-post-media-notice role="status"></p>
+                    </div>
+                </section>
                 <div class="feed-list" data-feed-list></div>
             </section>
             <section class="profile-content hidden" data-profile-content="replies">

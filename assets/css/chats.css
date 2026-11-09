@@ -2822,6 +2822,13 @@ body[data-page='chats'] .main-column {
     background: var(--forest);
 }
 
+.chat-message-link {
+    color: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    overflow-wrap: anywhere;
+}
+
 .chat-message time {
     display: block;
     margin-top: 4px;

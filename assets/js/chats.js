@@ -365,6 +365,8 @@
     const unread = state.notifications.filter(item => !item.read).length;
     const requests = state.notifications.filter(item => item.type === 'friend-request' && item.status === 'pending').length;
     document.querySelectorAll('[data-notification-count]').forEach(node => { node.textContent = unread || ''; });
+    const chatsWithNew = state.chats.filter(thread => (thread.messages || []).some(message => message.authorId && message.authorId !== state.currentUserId && message.read !== true)).length;
+    document.querySelectorAll('a.nav-link[href="chats.html"] [data-chat-count]').forEach(node => { node.textContent = chatsWithNew || ''; });
     document.querySelectorAll('[data-request-count]').forEach(node => {
       node.textContent = requests;
       node.classList.toggle('hidden', !requests);
@@ -1116,6 +1118,8 @@
 })();
 
 let activeChatId = '';
+let openedUnreadChatId = '';
+let openedUnreadIds = [];
 
 function saveActive() {
   try { sessionStorage.setItem('gather.activeChat', activeChatId || ''); }
@@ -1183,7 +1187,7 @@ function renderThread() {
         ? `<div class="chat-message-actions"><button type="button" data-action="edit-chat-message" data-chat-id="${Gather.escapeHTML(thread.id)}" data-message-id="${Gather.escapeHTML(message.id)}">Edit</button><button type="button" data-action="delete-chat-message" data-chat-id="${Gather.escapeHTML(thread.id)}" data-message-id="${Gather.escapeHTML(message.id)}">Delete</button></div>`
         : '';
       const marker = message.id === oldestNewId ? '<p class="chat-new-marker">new</p>' : '';
-      return `${marker}<article class="chat-message ${message.authorId === Gather.state.currentUserId ? 'mine' : ''}">${Gather.escapeHTML(message.text)}${actions}<time>${Gather.prettyTime(message.createdAt)}</time></article>`;
+      return `${marker}<article class="chat-message ${message.authorId === Gather.state.currentUserId ? 'mine' : ''}">${linkifyChatText(message.text)}${actions}<time>${Gather.prettyTime(message.createdAt)}</time></article>`;
     }).join('');
     container.innerHTML = `<header class="chat-thread-header"><button class="icon-button chat-back" type="button" data-action="chat-back" aria-label="Back to conversations">←</button>${Gather.avatar(person)}<div><strong>${Gather.escapeHTML(person.name)}</strong><span>@${Gather.escapeHTML(person.username)}</span></div></header><div class="chat-message-list" data-chat-message-list>${messages}</div><form class="chat-compose" data-chat-form><textarea name="message" rows="1" maxlength="1000" placeholder="Write a message..." aria-label="Write a message" required></textarea><button class="button button-primary" type="submit">Send</button></form>`;
     container.classList.add('open');
@@ -1198,6 +1202,8 @@ function renderThread() {
 function render() {
   renderList();
   renderThread();
+  const count = Gather.state.chats.filter(thread => receivedCount(thread) > 0).length;
+  document.querySelectorAll('a.nav-link[href="chats.html"] [data-chat-count]').forEach(node => { node.textContent = count || ''; });
 }
 
 Gather.start({
@@ -1214,13 +1220,24 @@ Gather.start({
       const closing = activeChatId === chatId;
       const previous = activeChatId;
       activeChatId = closing ? '' : chatId;
-      saveActive();
-      render();
-      if (!closing) {
+      if (closing) {
+        openedUnreadIds = [];
+        openedUnreadChatId = '';
+      } else {
+        const thread = Gather.state.chats.find(item => item.id === chatId);
+        openedUnreadChatId = chatId;
+        openedUnreadIds = (thread?.messages || []).filter(message => message.authorId && message.authorId !== Gather.state.currentUserId && message.read !== true).map(message => message.id);
+        markThreadRead(chatId).then(() => render()).catch(error => { render(); showChatError(error); });
         refreshThread(chatId).then(() => {
-          if (activeChatId === chatId) render();
+          if (activeChatId !== chatId) return;
+          Gather.state.chats.find(item => item.id === chatId)?.messages.forEach(message => {
+            if (openedUnreadIds.includes(message.id)) message.read = true;
+          });
+          render();
         }).catch(showChatError);
       }
+      saveActive();
+      render();
       const finished = closing ? chatId : previous;
       if (finished && finished !== activeChatId) markThreadRead(finished).then(() => render()).catch(showChatError);
       return;
@@ -1228,6 +1245,8 @@ Gather.start({
     if (name === 'chat-back') {
       const previous = activeChatId;
       activeChatId = '';
+      openedUnreadIds = [];
+      openedUnreadChatId = '';
       saveActive();
       render();
       if (previous) markThreadRead(previous).then(() => render()).catch(showChatError);
@@ -1418,20 +1437,57 @@ async function loadChats() {
 }
 
 function receivedCount(thread) {
-  return (thread.messages || []).filter(message => message.authorId && message.authorId !== Gather.state.currentUserId).length;
+  return (thread.messages || []).filter(message => message.authorId && message.authorId !== Gather.state.currentUserId && message.read !== true).length;
 }
 
 function oldestNewMessage(thread) {
+  if (thread.id === openedUnreadChatId && openedUnreadIds.length) {
+    return (thread.messages || []).find(message => openedUnreadIds.includes(message.id));
+  }
   return (thread.messages || []).find(message => message.authorId !== Gather.state.currentUserId && message.read !== true);
+}
+
+function chatLinkHref(url) {
+  try {
+    const parsed = new URL(url, window.location.href);
+    const postId = parsed.searchParams.get('post');
+    const userId = parsed.searchParams.get('user');
+    if (postId && parsed.pathname.toLowerCase().endsWith('home.html')) return `home.html?post=${encodeURIComponent(postId)}`;
+    if (userId && parsed.pathname.toLowerCase().endsWith('profile.html')) return `profile.html?user=${encodeURIComponent(userId)}`;
+  } catch {
+    return '';
+  }
+  return '';
+}
+
+function linkifyChatText(text) {
+  const source = String(text || '');
+  const pattern = /https?:\/\/[^\s]+/g;
+  let html = '';
+  let last = 0;
+  for (const match of source.matchAll(pattern)) {
+    const url = match[0];
+    html += Gather.escapeHTML(source.slice(last, match.index));
+    const href = chatLinkHref(url);
+    html += href
+      ? `<a class="chat-message-link" href="${Gather.escapeHTML(href)}">${Gather.escapeHTML(url)}</a>`
+      : Gather.escapeHTML(url);
+    last = match.index + url.length;
+  }
+  return html + Gather.escapeHTML(source.slice(last));
 }
 
 async function markThreadRead(chatId) {
   const thread = Gather.state.chats.find(item => item.id === chatId);
-  if (!thread?.messages.some(message => message.authorId !== Gather.state.currentUserId && message.read !== true)) return;
-  await apiFetch(`/api/chats/${encodeURIComponent(chatId)}/read`, { method: 'POST' });
-  Gather.state.chats.find(item => item.id === chatId)?.messages.forEach(message => {
-    if (message.authorId !== Gather.state.currentUserId) message.read = true;
-  });
+  const unread = thread?.messages.filter(message => message.authorId && message.authorId !== Gather.state.currentUserId && message.read !== true) || [];
+  if (!unread.length) return;
+  unread.forEach(message => { message.read = true; });
+  try {
+    await apiFetch(`/api/chats/${encodeURIComponent(chatId)}/read`, { method: 'POST' });
+  } catch (error) {
+    unread.forEach(message => { message.read = false; });
+    throw error;
+  }
 }
 
 async function refreshThread(id) {

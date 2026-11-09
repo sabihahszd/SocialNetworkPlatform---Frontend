@@ -365,6 +365,8 @@
     const unread = state.notifications.filter(item => !item.read).length;
     const requests = state.notifications.filter(item => item.type === 'friend-request' && item.status === 'pending').length;
     document.querySelectorAll('[data-notification-count]').forEach(node => { node.textContent = unread || ''; });
+    const chatsWithNew = state.chats.filter(thread => (thread.messages || []).some(message => message.authorId && message.authorId !== state.currentUserId && message.read !== true)).length;
+    document.querySelectorAll('a.nav-link[href="chats.html"] [data-chat-count]').forEach(node => { node.textContent = chatsWithNew || ''; });
     document.querySelectorAll('[data-request-count]').forEach(node => {
       node.textContent = requests;
       node.classList.toggle('hidden', !requests);
@@ -1303,14 +1305,15 @@ async function loadSettings() {
     rememberUser(me);
     Gather.renderShell();
 
-    const [site, settings, users, friends, outgoing, communities, notifications] = await Promise.all([
+    const [site, settings, users, friends, outgoing, communities, notifications, chats] = await Promise.all([
       apiFetch('/api/site'),
       apiFetch('/api/settings'),
       apiFetch('/api/users'),
       apiFetch('/api/friends').catch(() => []),
       apiFetch('/api/friends/requests/outgoing').catch(() => []),
       apiFetch('/api/communities').catch(() => []),
-      apiFetch('/api/notifications').catch(() => [])
+      apiFetch('/api/notifications').catch(() => []),
+      apiFetch('/api/chats').catch(() => [])
     ]);
 
     Gather.state.currentUserId = me.id;
@@ -1324,6 +1327,11 @@ async function loadSettings() {
       .map(item => item.toUserId);
     Gather.state.communities = communities || [];
     Gather.state.notifications = notifications || [];
+    Gather.state.chats = (chats || []).map(thread => ({
+      id: thread.id,
+      participantId: thread.participantId,
+      messages: thread.messages || []
+    }));
     paintSettings();
   } catch (error) {
     Gather.applyBranding(Gather.state.site);
