@@ -102,15 +102,23 @@
   const profileHref = user => user?.id && user.id !== 'someone' ? `profile.html?user=${encodeURIComponent(user.id)}` : 'profile.html';
   const avatar = (user, extraClass = '') => { const photo = safePhoto(user?.photo); const userId = escapeHTML(user?.id || ''); return `<span class="avatar ${escapeHTML(user?.tone || '')} ${extraClass}" data-user-id="${userId}">${photo ? `<img src="${escapeHTML(photo)}" alt="">` : escapeHTML((user?.name || 'M').slice(0, 1).toUpperCase())}</span>`; };
   const memberCount = value => Number(value || 0).toLocaleString();
-  const prettyTime = date => {
-    const minutes = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 60000));
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h`;
-    return `${Math.floor(hours / 24)}d`;
+  const serverDate = value => {
+    if (value instanceof Date) return value;
+    const raw = String(value ?? '').trim();
+    if (!raw) return new Date(NaN);
+    if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(raw) && !/(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(raw)) return new Date(`${raw.replace(' ', 'T')}Z`);
+    return new Date(raw);
   };
-  const byNewest = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
+  const clockStamp = value => {
+    const date = serverDate(value);
+    if (Number.isNaN(date.getTime()) || date.getFullYear() <= 1) return { clock: '', date: '', text: '' };
+    const clock = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    return { clock, date: day, text: `${clock} · ${day}` };
+  };
+  const prettyTime = value => clockStamp(value).text;
+  const byNewest = (a, b) => serverDate(b.createdAt) - serverDate(a.createdAt);
   const allComments = post => (post.comments || []).reduce((count, item) => count + 1 + (item.replies || []).reduce((replyCount, reply) => replyCount + 1 + (reply.replies || []).length, 0), 0);
   const findComment = (comments, id) => {
     for (const comment of comments || []) {
@@ -420,6 +428,7 @@
 
   function renderPost(post, { readOnly = false } = {}) {
     const author = postAuthor(post);
+    const stamp = clockStamp(post.createdAt);
     const likes = post.likes || [];
     const reposts = post.reposts || [];
     const bookmarks = post.bookmarks || [];
@@ -432,7 +441,7 @@
     const actions = readOnly ? '' : `<div class="post-actions"><button class="post-action${liked ? ' liked' : ''}" type="button" data-action="toggle-like" aria-label="${liked ? 'Unlike' : 'Like'} post"><i class="${liked ? 'fa-solid' : 'fa-regular'} fa-heart"></i><span class="action-count">${likes.length}</span></button><button class="post-action${reposted ? ' reposted' : ''}" type="button" data-action="toggle-repost" aria-label="${reposted ? 'Undo repost' : 'Repost'}"><i class="fa-solid fa-retweet"></i><span class="action-count">${reposts.length}</span></button><button class="post-action" type="button" data-action="open-post" data-post-id="${escapeHTML(post.id)}" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">${comments.length}</span></button><button class="post-action${bookmarked ? ' bookmarked' : ''}" type="button" data-action="toggle-bookmark" aria-label="${bookmarked ? 'Unsave post' : 'Save post'}"><i class="${bookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i><span class="action-count">${bookmarks.length}</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share post"><i class="fa-solid fa-share-nodes"></i></button></div>`;
     const commentForm = readOnly ? '' : '<form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form>';
     const audience = post.privacy === 'communities' ? 'Communities' : post.privacy === 'friends' ? 'Friends' : 'Everyone';
-    return `<article class="post-card" data-post-id="${escapeHTML(post.id)}"><div class="post-header"><a href="${profileHref(author)}" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context"><span class="context-icon">${post.privacy === 'public' ? '✳' : '◎'}</span>${audience} · ${prettyTime(post.createdAt)} <a class="post-open-link" href="home.html?post=${encodeURIComponent(post.id)}">View post</a></span></div><button class="icon-button post-menu" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${escapeHTML(post.text)}</p>${video ? `<video class="post-image" src="${video}" controls preload="metadata" aria-label="Video shared by ${escapeHTML(author.name)}"></video>` : image ? `<img class="post-image" src="${image}" alt="Photo shared by ${escapeHTML(author.name)}" loading="lazy">` : ''}${actions}${commentForm}${comments.length ? `<div class="comment-list">${comments.map(comment => renderComment(comment, post.id)).join('')}</div>` : ''}</article>`;
+    return `<article class="post-card" data-post-id="${escapeHTML(post.id)}"><div class="post-header"><a href="${profileHref(author)}" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context"><span class="context-icon">${post.privacy === 'public' ? '✳' : '◎'}</span>${audience}</span></div><button class="icon-button post-menu" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${escapeHTML(post.text)}</p>${video ? `<video class="post-image" src="${video}" controls preload="metadata" aria-label="Video shared by ${escapeHTML(author.name)}"></video>` : image ? `<img class="post-image" src="${image}" alt="Photo shared by ${escapeHTML(author.name)}" loading="lazy">` : ''}<time class="post-time" datetime="${escapeHTML(post.createdAt || '')}">${escapeHTML(stamp.text)}</time>${actions}${commentForm}${comments.length ? `<div class="comment-list">${comments.map(comment => renderComment(comment, post.id)).join('')}</div>` : ''}</article>`;
   }
 
   function ensurePostActionStyles() {
@@ -982,7 +991,7 @@
     const author = currentUser();
     const item = document.createElement('div');
     item.className = 'comment-item';
-    item.innerHTML = `<div class="comment-thread"><div class="comment-rail"><a class="comment-avatar" href="${profileHref(author)}" aria-label="${escapeHTML(author?.name || 'Profile')} profile">${author ? avatar(author, 'avatar-small') : '<span class="avatar avatar-small"></span>'}</a></div><div class="comment-body"><div class="comment-meta"><strong>${escapeHTML(author?.name || '')}</strong><span class="handle">@${escapeHTML(author?.username || '')}</span><time class="comment-time">just now</time></div><p class="comment-text">${escapeHTML(text)}</p><div class="post-actions"><button class="post-action" type="button" data-action="comment-like" aria-label="Like"><i class="fa-regular fa-heart"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-repost" aria-label="Repost"><i class="fa-solid fa-retweet"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="open-post" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-bookmark" aria-label="Save"><i class="fa-regular fa-bookmark"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share"><i class="fa-solid fa-share-nodes"></i></button></div><form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form></div></div></div>`;
+    item.innerHTML = `<div class="comment-thread"><div class="comment-rail"><a class="comment-avatar" href="${profileHref(author)}" aria-label="${escapeHTML(author?.name || 'Profile')} profile">${author ? avatar(author, 'avatar-small') : '<span class="avatar avatar-small"></span>'}</a></div><div class="comment-body"><div class="comment-meta"><strong>${escapeHTML(author?.name || '')}</strong><span class="handle">@${escapeHTML(author?.username || '')}</span><time class="comment-time"></time></div><p class="comment-text">${escapeHTML(text)}</p><div class="post-actions"><button class="post-action" type="button" data-action="comment-like" aria-label="Like"><i class="fa-regular fa-heart"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-repost" aria-label="Repost"><i class="fa-solid fa-retweet"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="open-post" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-bookmark" aria-label="Save"><i class="fa-regular fa-bookmark"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share"><i class="fa-solid fa-share-nodes"></i></button></div><form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form></div></div></div>`;
     const parentId = form.dataset.replyParent;
     const parent = parentId ? card.querySelector(`[data-comment-id="${CSS.escape(parentId)}"]`) : null;
     if (parent) {
@@ -1123,22 +1132,22 @@ function render() {
   document.querySelectorAll('[data-notification-list]').forEach(container => {
     let notifications = Gather.state.notifications.slice().sort(Gather.byNewest);
     if (notificationFilter === 'requests') notifications = notifications.filter(item => item.type === 'friend-request');
-    if (notificationFilter === 'mentions') notifications = notifications.filter(item => item.type === 'comment');
+    if (notificationFilter === 'mentions') notifications = notifications.filter(item => item.type === 'mention' || item.type === 'comment');
     container.innerHTML = notifications.map(item => {
       const actor = Gather.userById(item.actorId);
       const pending = item.type === 'friend-request' && item.status === 'pending';
       const labels = {
         'friend-request': 'sent you a friend request.',
         like: 'liked your post.',
-        comment: 'replied to your post.',
+        comment: 'commented on your post.',
+        mention: 'mentioned you in a post.',
         repost: 'reposted your post.',
         community: 'joined your community.'
       };
       const label = labels[item.type] || 'sent you a notification.';
-      const icon = item.type === 'friend-request' ? '＋' : item.type === 'like' ? '♥' : '↩';
       const detail = item.detail ? `<span class="notification-detail">"${Gather.escapeHTML(item.detail)}"</span>` : '';
       const actions = pending ? `<div class="notification-actions"><button class="button button-primary" data-action="accept-request" data-notification-id="${Gather.escapeHTML(item.id)}">Accept</button><button class="button button-secondary" data-action="decline-request" data-notification-id="${Gather.escapeHTML(item.id)}">Decline</button></div>` : '';
-      return `<article class="notification-row ${item.read ? '' : 'unread'}" data-type="${Gather.escapeHTML(item.type)}"><div class="notification-avatar">${Gather.avatar(actor)}<span class="notification-icon ${item.type === 'friend-request' ? 'friend' : item.type === 'comment' ? 'reply' : ''}">${icon}</span></div><div class="notification-content"><strong>${Gather.escapeHTML(actor.name)}</strong> ${label}${detail}${actions}</div><time class="notification-time">${Gather.prettyTime(item.createdAt)}</time></article>`;
+      return `<article class="notification-row ${item.read ? '' : 'unread'}" data-type="${Gather.escapeHTML(item.type)}" data-notification-id="${Gather.escapeHTML(item.id)}" data-action="read-notification" role="button" tabindex="0"><div class="notification-avatar">${Gather.avatar(actor)}</div><div class="notification-content"><strong>${Gather.escapeHTML(actor.name)}</strong> ${label}${detail}${actions}</div><time class="notification-time">${Gather.prettyTime(item.createdAt)}</time></article>`;
     }).join('');
     document.querySelector('[data-empty-notifications]')?.classList.toggle('hidden', notifications.length > 0);
   });
@@ -1151,7 +1160,7 @@ Gather.start({
       document.querySelectorAll('[data-notification-filter]').forEach(item => item.classList.toggle('active', item.dataset.notificationFilter === notificationFilter));
       document.querySelectorAll('[data-notification-list] .notification-row').forEach(row => {
         const type = row.dataset.type;
-        row.hidden = notificationFilter === 'requests' ? type !== 'friend-request' : notificationFilter === 'mentions' ? type !== 'comment' : false;
+        row.hidden = notificationFilter === 'requests' ? type !== 'friend-request' : notificationFilter === 'mentions' ? type !== 'mention' && type !== 'comment' : false;
       });
     };
     applyFilter();
@@ -1175,7 +1184,7 @@ Gather.start({
 
 const API_BASE = 'http://localhost:5039';
 
-const notificationActions = new Set(['mark-read', 'accept-request', 'decline-request']);
+const notificationActions = new Set(['mark-read', 'accept-request', 'decline-request', 'read-notification']);
 
 function showNotificationError(error) {
   const message = error?.message === 'Failed to fetch'
@@ -1270,6 +1279,27 @@ async function loadNotifications() {
   }
 }
 
+async function markNotificationRead(row) {
+  const id = row?.dataset.notificationId;
+  if (!id || row.dataset.pending === '1') return;
+  const item = Gather.state.notifications.find(entry => entry.id === id);
+  if (!item || item.read) return;
+  row.dataset.pending = '1';
+  item.read = true;
+  paintNotifications();
+  try {
+    const updated = await apiFetch(`/api/notifications/${encodeURIComponent(id)}/read`, { method: 'PUT' });
+    if (!Gather.api.token() || !updated) return;
+    const index = Gather.state.notifications.findIndex(entry => entry.id === updated.id);
+    if (index !== -1) Gather.state.notifications[index] = updated;
+    paintNotifications();
+  } catch (error) {
+    item.read = false;
+    paintNotifications();
+    showNotificationError(error);
+  }
+}
+
 async function markNotificationsRead() {
   await apiFetch('/api/notifications/read', { method: 'PUT' });
   if (!Gather.api.token()) return;
@@ -1299,7 +1329,9 @@ document.addEventListener('click', event => {
   const action = element.dataset.action;
   const work = action === 'mark-read'
     ? markNotificationsRead()
-    : respondToRequest(element, action === 'accept-request');
+    : action === 'read-notification'
+      ? markNotificationRead(element)
+      : respondToRequest(element, action === 'accept-request');
   work.catch(showNotificationError);
 }, true);
 

@@ -688,9 +688,9 @@ select:focus-visible {
     min-width: 0;
     display: flex;
     flex: 1;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 4px 6px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
     line-height: 1.35;
 }
 
@@ -706,7 +706,10 @@ select:focus-visible {
 }
 
 .post-time {
-    flex-basis: 100%;
+    display: block;
+    margin: 0 0 10px 52px;
+    line-height: 1.3;
+    text-align: right;
 }
 
 .post-menu {
@@ -2327,6 +2330,10 @@ select:focus-visible {
         padding: 15px 16px 12px;
     }
 
+    .post-time {
+        margin-left: 47px;
+    }
+
     .post-text {
         margin-left: 47px;
         font-size: 12px;
@@ -2816,10 +2823,70 @@ body[data-page='chats'] .main-column {
 }
 
 .chat-message.mine {
+    position: relative;
     align-self: flex-end;
+    padding-right: 28px;
     border-radius: 12px 4px 12px 12px;
     color: #fff;
     background: var(--forest);
+}
+
+.chat-message-menu {
+    position: absolute;
+    top: 3px;
+    right: 3px;
+}
+
+.chat-message-more {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    color: inherit;
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.chat-message-more:hover,
+.chat-message-more[aria-expanded="true"] {
+    background: rgba(255, 255, 255, .16);
+}
+
+.chat-message-options {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    z-index: 3;
+    display: grid;
+    min-width: 112px;
+    padding: 4px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(25, 50, 38, .12);
+}
+
+.chat-message-options[hidden] {
+    display: none;
+}
+
+.chat-message-options button {
+    padding: 7px 10px;
+    border: 0;
+    border-radius: 6px;
+    color: var(--ink);
+    background: transparent;
+    cursor: pointer;
+    font-size: 12px;
+    text-align: left;
+}
+
+.chat-message-options button:hover {
+    background: var(--leaf-pale);
 }
 
 .chat-message-link {
@@ -2832,8 +2899,9 @@ body[data-page='chats'] .main-column {
 .chat-message time {
     display: block;
     margin-top: 4px;
-    opacity: .7;
-    font-size: 8px;
+    opacity: .75;
+    font-size: 10px;
+    line-height: 1.35;
 }
 
 .chat-compose {

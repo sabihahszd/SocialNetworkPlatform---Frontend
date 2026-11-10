@@ -102,15 +102,23 @@
   const profileHref = user => user?.id && user.id !== 'someone' ? `profile.html?user=${encodeURIComponent(user.id)}` : 'profile.html';
   const avatar = (user, extraClass = '') => { const photo = safePhoto(user?.photo); const userId = escapeHTML(user?.id || ''); return `<span class="avatar ${escapeHTML(user?.tone || '')} ${extraClass}" data-user-id="${userId}">${photo ? `<img src="${escapeHTML(photo)}" alt="">` : escapeHTML((user?.name || 'M').slice(0, 1).toUpperCase())}</span>`; };
   const memberCount = value => Number(value || 0).toLocaleString();
-  const prettyTime = date => {
-    const minutes = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 60000));
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h`;
-    return `${Math.floor(hours / 24)}d`;
+  const serverDate = value => {
+    if (value instanceof Date) return value;
+    const raw = String(value ?? '').trim();
+    if (!raw) return new Date(NaN);
+    if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(raw) && !/(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(raw)) return new Date(`${raw.replace(' ', 'T')}Z`);
+    return new Date(raw);
   };
-  const byNewest = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
+  const clockStamp = value => {
+    const date = serverDate(value);
+    if (Number.isNaN(date.getTime()) || date.getFullYear() <= 1) return { clock: '', date: '', text: '' };
+    const clock = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    return { clock, date: day, text: `${clock} · ${day}` };
+  };
+  const prettyTime = value => clockStamp(value).text;
+  const byNewest = (a, b) => serverDate(b.createdAt) - serverDate(a.createdAt);
   const allComments = post => (post.comments || []).reduce((count, item) => count + 1 + (item.replies || []).reduce((replyCount, reply) => replyCount + 1 + (reply.replies || []).length, 0), 0);
   const findComment = (comments, id) => {
     for (const comment of comments || []) {
@@ -425,6 +433,7 @@
 
   function renderPost(post, { readOnly = false } = {}) {
     const author = postAuthor(post);
+    const stamp = clockStamp(post.createdAt);
     const likes = post.likes || [];
     const reposts = post.reposts || [];
     const bookmarks = post.bookmarks || [];
@@ -437,7 +446,7 @@
     const actions = readOnly ? '' : `<div class="post-actions"><button class="post-action${liked ? ' liked' : ''}" type="button" data-action="toggle-like" aria-label="${liked ? 'Unlike' : 'Like'} post"><i class="${liked ? 'fa-solid' : 'fa-regular'} fa-heart"></i><span class="action-count">${likes.length}</span></button><button class="post-action${reposted ? ' reposted' : ''}" type="button" data-action="toggle-repost" aria-label="${reposted ? 'Undo repost' : 'Repost'}"><i class="fa-solid fa-retweet"></i><span class="action-count">${reposts.length}</span></button><button class="post-action" type="button" data-action="open-post" data-post-id="${escapeHTML(post.id)}" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">${comments.length}</span></button><button class="post-action${bookmarked ? ' bookmarked' : ''}" type="button" data-action="toggle-bookmark" aria-label="${bookmarked ? 'Unsave post' : 'Save post'}"><i class="${bookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i><span class="action-count">${bookmarks.length}</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share post"><i class="fa-solid fa-share-nodes"></i></button></div>`;
     const commentForm = readOnly ? '' : '<form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form>';
     const audience = post.privacy === 'communities' ? 'Communities' : post.privacy === 'friends' ? 'Friends' : 'Everyone';
-    return `<article class="post-card" data-post-id="${escapeHTML(post.id)}"><div class="post-header"><a href="${profileHref(author)}" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context"><span class="context-icon">${post.privacy === 'public' ? '✳' : '◎'}</span>${audience} · ${prettyTime(post.createdAt)} <a class="post-open-link" href="home.html?post=${encodeURIComponent(post.id)}">View post</a></span></div><button class="icon-button post-menu" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${escapeHTML(post.text)}</p>${video ? `<video class="post-image" src="${video}" controls preload="metadata" aria-label="Video shared by ${escapeHTML(author.name)}"></video>` : image ? `<img class="post-image" src="${image}" alt="Photo shared by ${escapeHTML(author.name)}" loading="lazy">` : ''}${actions}${commentForm}${comments.length ? `<div class="comment-list">${comments.map(comment => renderComment(comment, post.id)).join('')}</div>` : ''}</article>`;
+    return `<article class="post-card" data-post-id="${escapeHTML(post.id)}"><div class="post-header"><a href="${profileHref(author)}" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context"><span class="context-icon">${post.privacy === 'public' ? '✳' : '◎'}</span>${audience}</span></div><button class="icon-button post-menu" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${escapeHTML(post.text)}</p>${video ? `<video class="post-image" src="${video}" controls preload="metadata" aria-label="Video shared by ${escapeHTML(author.name)}"></video>` : image ? `<img class="post-image" src="${image}" alt="Photo shared by ${escapeHTML(author.name)}" loading="lazy">` : ''}<time class="post-time" datetime="${escapeHTML(post.createdAt || '')}">${escapeHTML(stamp.text)}</time>${actions}${commentForm}${comments.length ? `<div class="comment-list">${comments.map(comment => renderComment(comment, post.id)).join('')}</div>` : ''}</article>`;
   }
 
   function ensurePostActionStyles() {
@@ -987,7 +996,7 @@
     const author = currentUser();
     const item = document.createElement('div');
     item.className = 'comment-item';
-    item.innerHTML = `<div class="comment-thread"><div class="comment-rail"><a class="comment-avatar" href="${profileHref(author)}" aria-label="${escapeHTML(author?.name || 'Profile')} profile">${author ? avatar(author, 'avatar-small') : '<span class="avatar avatar-small"></span>'}</a></div><div class="comment-body"><div class="comment-meta"><strong>${escapeHTML(author?.name || '')}</strong><span class="handle">@${escapeHTML(author?.username || '')}</span><time class="comment-time">just now</time></div><p class="comment-text">${escapeHTML(text)}</p><div class="post-actions"><button class="post-action" type="button" data-action="comment-like" aria-label="Like"><i class="fa-regular fa-heart"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-repost" aria-label="Repost"><i class="fa-solid fa-retweet"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="open-post" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-bookmark" aria-label="Save"><i class="fa-regular fa-bookmark"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share"><i class="fa-solid fa-share-nodes"></i></button></div><form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form></div></div></div>`;
+    item.innerHTML = `<div class="comment-thread"><div class="comment-rail"><a class="comment-avatar" href="${profileHref(author)}" aria-label="${escapeHTML(author?.name || 'Profile')} profile">${author ? avatar(author, 'avatar-small') : '<span class="avatar avatar-small"></span>'}</a></div><div class="comment-body"><div class="comment-meta"><strong>${escapeHTML(author?.name || '')}</strong><span class="handle">@${escapeHTML(author?.username || '')}</span><time class="comment-time"></time></div><p class="comment-text">${escapeHTML(text)}</p><div class="post-actions"><button class="post-action" type="button" data-action="comment-like" aria-label="Like"><i class="fa-regular fa-heart"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-repost" aria-label="Repost"><i class="fa-solid fa-retweet"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="open-post" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-bookmark" aria-label="Save"><i class="fa-regular fa-bookmark"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share"><i class="fa-solid fa-share-nodes"></i></button></div><form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form></div></div></div>`;
     const parentId = form.dataset.replyParent;
     const parent = parentId ? card.querySelector(`[data-comment-id="${CSS.escape(parentId)}"]`) : null;
     if (parent) {

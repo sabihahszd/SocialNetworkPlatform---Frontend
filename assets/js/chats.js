@@ -102,15 +102,23 @@
   const profileHref = user => user?.id && user.id !== 'someone' ? `profile.html?user=${encodeURIComponent(user.id)}` : 'profile.html';
   const avatar = (user, extraClass = '') => { const photo = safePhoto(user?.photo); const userId = escapeHTML(user?.id || ''); return `<span class="avatar ${escapeHTML(user?.tone || '')} ${extraClass}" data-user-id="${userId}">${photo ? `<img src="${escapeHTML(photo)}" alt="">` : escapeHTML((user?.name || 'M').slice(0, 1).toUpperCase())}</span>`; };
   const memberCount = value => Number(value || 0).toLocaleString();
-  const prettyTime = date => {
-    const minutes = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 60000));
-    if (minutes < 1) return 'just now';
-    if (minutes < 60) return `${minutes}m`;
-    const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `${hours}h`;
-    return `${Math.floor(hours / 24)}d`;
+  const serverDate = value => {
+    if (value instanceof Date) return value;
+    const raw = String(value ?? '').trim();
+    if (!raw) return new Date(NaN);
+    if (/^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}/.test(raw) && !/(?:[zZ]|[+-]\d{2}:?\d{2})$/.test(raw)) return new Date(`${raw.replace(' ', 'T')}Z`);
+    return new Date(raw);
   };
-  const byNewest = (a, b) => new Date(b.createdAt) - new Date(a.createdAt);
+  const clockStamp = value => {
+    const date = serverDate(value);
+    if (Number.isNaN(date.getTime()) || date.getFullYear() <= 1) return { clock: '', date: '', text: '' };
+    const clock = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const day = `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+    return { clock, date: day, text: `${clock} · ${day}` };
+  };
+  const prettyTime = value => clockStamp(value).text;
+  const byNewest = (a, b) => serverDate(b.createdAt) - serverDate(a.createdAt);
   const allComments = post => (post.comments || []).reduce((count, item) => count + 1 + (item.replies || []).reduce((replyCount, reply) => replyCount + 1 + (reply.replies || []).length, 0), 0);
   const findComment = (comments, id) => {
     for (const comment of comments || []) {
@@ -420,6 +428,7 @@
 
   function renderPost(post, { readOnly = false } = {}) {
     const author = postAuthor(post);
+    const stamp = clockStamp(post.createdAt);
     const likes = post.likes || [];
     const reposts = post.reposts || [];
     const bookmarks = post.bookmarks || [];
@@ -432,7 +441,7 @@
     const actions = readOnly ? '' : `<div class="post-actions"><button class="post-action${liked ? ' liked' : ''}" type="button" data-action="toggle-like" aria-label="${liked ? 'Unlike' : 'Like'} post"><i class="${liked ? 'fa-solid' : 'fa-regular'} fa-heart"></i><span class="action-count">${likes.length}</span></button><button class="post-action${reposted ? ' reposted' : ''}" type="button" data-action="toggle-repost" aria-label="${reposted ? 'Undo repost' : 'Repost'}"><i class="fa-solid fa-retweet"></i><span class="action-count">${reposts.length}</span></button><button class="post-action" type="button" data-action="open-post" data-post-id="${escapeHTML(post.id)}" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">${comments.length}</span></button><button class="post-action${bookmarked ? ' bookmarked' : ''}" type="button" data-action="toggle-bookmark" aria-label="${bookmarked ? 'Unsave post' : 'Save post'}"><i class="${bookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark"></i><span class="action-count">${bookmarks.length}</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share post"><i class="fa-solid fa-share-nodes"></i></button></div>`;
     const commentForm = readOnly ? '' : '<form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form>';
     const audience = post.privacy === 'communities' ? 'Communities' : post.privacy === 'friends' ? 'Friends' : 'Everyone';
-    return `<article class="post-card" data-post-id="${escapeHTML(post.id)}"><div class="post-header"><a href="${profileHref(author)}" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context"><span class="context-icon">${post.privacy === 'public' ? '✳' : '◎'}</span>${audience} · ${prettyTime(post.createdAt)} <a class="post-open-link" href="home.html?post=${encodeURIComponent(post.id)}">View post</a></span></div><button class="icon-button post-menu" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${escapeHTML(post.text)}</p>${video ? `<video class="post-image" src="${video}" controls preload="metadata" aria-label="Video shared by ${escapeHTML(author.name)}"></video>` : image ? `<img class="post-image" src="${image}" alt="Photo shared by ${escapeHTML(author.name)}" loading="lazy">` : ''}${actions}${commentForm}${comments.length ? `<div class="comment-list">${comments.map(comment => renderComment(comment, post.id)).join('')}</div>` : ''}</article>`;
+    return `<article class="post-card" data-post-id="${escapeHTML(post.id)}"><div class="post-header"><a href="${profileHref(author)}" aria-label="${escapeHTML(author.name)} profile">${avatar(author)}</a><div class="post-author"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><span class="post-context"><span class="context-icon">${post.privacy === 'public' ? '✳' : '◎'}</span>${audience}</span></div><button class="icon-button post-menu" data-action="post-options" aria-label="Post options">···</button></div><p class="post-text">${escapeHTML(post.text)}</p>${video ? `<video class="post-image" src="${video}" controls preload="metadata" aria-label="Video shared by ${escapeHTML(author.name)}"></video>` : image ? `<img class="post-image" src="${image}" alt="Photo shared by ${escapeHTML(author.name)}" loading="lazy">` : ''}<time class="post-time" datetime="${escapeHTML(post.createdAt || '')}">${escapeHTML(stamp.text)}</time>${actions}${commentForm}${comments.length ? `<div class="comment-list">${comments.map(comment => renderComment(comment, post.id)).join('')}</div>` : ''}</article>`;
   }
 
   function ensurePostActionStyles() {
@@ -982,7 +991,7 @@
     const author = currentUser();
     const item = document.createElement('div');
     item.className = 'comment-item';
-    item.innerHTML = `<div class="comment-thread"><div class="comment-rail"><a class="comment-avatar" href="${profileHref(author)}" aria-label="${escapeHTML(author?.name || 'Profile')} profile">${author ? avatar(author, 'avatar-small') : '<span class="avatar avatar-small"></span>'}</a></div><div class="comment-body"><div class="comment-meta"><strong>${escapeHTML(author?.name || '')}</strong><span class="handle">@${escapeHTML(author?.username || '')}</span><time class="comment-time">just now</time></div><p class="comment-text">${escapeHTML(text)}</p><div class="post-actions"><button class="post-action" type="button" data-action="comment-like" aria-label="Like"><i class="fa-regular fa-heart"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-repost" aria-label="Repost"><i class="fa-solid fa-retweet"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="open-post" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-bookmark" aria-label="Save"><i class="fa-regular fa-bookmark"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share"><i class="fa-solid fa-share-nodes"></i></button></div><form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form></div></div></div>`;
+    item.innerHTML = `<div class="comment-thread"><div class="comment-rail"><a class="comment-avatar" href="${profileHref(author)}" aria-label="${escapeHTML(author?.name || 'Profile')} profile">${author ? avatar(author, 'avatar-small') : '<span class="avatar avatar-small"></span>'}</a></div><div class="comment-body"><div class="comment-meta"><strong>${escapeHTML(author?.name || '')}</strong><span class="handle">@${escapeHTML(author?.username || '')}</span><time class="comment-time"></time></div><p class="comment-text">${escapeHTML(text)}</p><div class="post-actions"><button class="post-action" type="button" data-action="comment-like" aria-label="Like"><i class="fa-regular fa-heart"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-repost" aria-label="Repost"><i class="fa-solid fa-retweet"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="open-post" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-bookmark" aria-label="Save"><i class="fa-regular fa-bookmark"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="share-post" aria-label="Share"><i class="fa-solid fa-share-nodes"></i></button></div><form class="comment-form" data-comment-form><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form></div></div></div>`;
     const parentId = form.dataset.replyParent;
     const parent = parentId ? card.querySelector(`[data-comment-id="${CSS.escape(parentId)}"]`) : null;
     if (parent) {
@@ -1163,9 +1172,20 @@ function renderList() {
       const latest = thread.messages.at(-1);
       const received = receivedCount(thread);
       const bubble = received ? `<span class="chat-received" aria-label="${received} received">${received}</span>` : '';
-      return `<button class="chat-list-item ${thread.id === activeChatId ? 'active' : ''}" data-action="select-chat" data-chat-id="${Gather.escapeHTML(thread.id)}">${Gather.avatar(person)}<span class="chat-list-copy"><strong>${Gather.escapeHTML(person.name)}</strong><span>${Gather.escapeHTML(latest?.text || 'Start a conversation')}</span></span><span class="chat-list-meta">${bubble}<time class="chat-list-time">${latest ? Gather.prettyTime(latest.createdAt) : ''}</time></span></button>`;
+      const meta = bubble ? `<span class="chat-list-meta">${bubble}</span>` : '';
+      return `<button class="chat-list-item ${thread.id === activeChatId ? 'active' : ''}" data-action="select-chat" data-chat-id="${Gather.escapeHTML(thread.id)}">${Gather.avatar(person)}<span class="chat-list-copy"><strong>${Gather.escapeHTML(person.name)}</strong><span>${Gather.escapeHTML(latest?.text || 'Start a conversation')}</span></span>${meta}</button>`;
     }).join('') || '<p class="chat-empty-filter">No conversations match that search.</p>';
   });
+}
+
+function mineMessageTools(chatId = '', messageId = '') {
+  const ids = chatId ? ` data-chat-id="${Gather.escapeHTML(chatId)}" data-message-id="${Gather.escapeHTML(messageId)}"` : '';
+  return `<div class="chat-message-menu"><button class="chat-message-more" type="button" data-action="chat-message-menu" aria-label="Message options" aria-expanded="false"><i class="fa-solid fa-ellipsis-vertical"></i></button><div class="chat-message-options" hidden><button type="button" data-action="edit-chat-message"${ids}>Edit</button><button type="button" data-action="delete-chat-message"${ids}>Delete</button></div></div>`;
+}
+
+function closeMessageMenus() {
+  document.querySelectorAll('.chat-message-options').forEach(node => { node.hidden = true; });
+  document.querySelectorAll('[data-action="chat-message-menu"]').forEach(button => button.setAttribute('aria-expanded', 'false'));
 }
 
 function renderThread() {
@@ -1183,11 +1203,9 @@ function renderThread() {
     const person = Gather.userById(thread.participantId);
     const oldestNewId = oldestNewMessage(thread)?.id || '';
     const messages = thread.messages.map(message => {
-      const actions = message.authorId === Gather.state.currentUserId
-        ? `<div class="chat-message-actions"><button type="button" data-action="edit-chat-message" data-chat-id="${Gather.escapeHTML(thread.id)}" data-message-id="${Gather.escapeHTML(message.id)}">Edit</button><button type="button" data-action="delete-chat-message" data-chat-id="${Gather.escapeHTML(thread.id)}" data-message-id="${Gather.escapeHTML(message.id)}">Delete</button></div>`
-        : '';
+      const actions = message.authorId === Gather.state.currentUserId ? mineMessageTools(thread.id, message.id) : '';
       const marker = message.id === oldestNewId ? '<p class="chat-new-marker">new</p>' : '';
-      return `${marker}<article class="chat-message ${message.authorId === Gather.state.currentUserId ? 'mine' : ''}">${linkifyChatText(message.text)}${actions}<time>${Gather.prettyTime(message.createdAt)}</time></article>`;
+      return `${marker}<article class="chat-message ${message.authorId === Gather.state.currentUserId ? 'mine' : ''}">${linkifyChatText(message.text)}${actions}<time datetime="${Gather.escapeHTML(message.createdAt || '')}">${Gather.escapeHTML(Gather.prettyTime(message.createdAt))}</time></article>`;
     }).join('');
     container.innerHTML = `<header class="chat-thread-header"><button class="icon-button chat-back" type="button" data-action="chat-back" aria-label="Back to conversations">←</button>${Gather.avatar(person)}<div><strong>${Gather.escapeHTML(person.name)}</strong><span>@${Gather.escapeHTML(person.username)}</span></div></header><div class="chat-message-list" data-chat-message-list>${messages}</div><form class="chat-compose" data-chat-form><textarea name="message" rows="1" maxlength="1000" placeholder="Write a message..." aria-label="Write a message" required></textarea><button class="button button-primary" type="submit">Send</button></form>`;
     container.classList.add('open');
@@ -1209,12 +1227,27 @@ function render() {
 Gather.start({
   render,
   bind() {
+    document.addEventListener('click', event => {
+      if (event.target.closest('.chat-message-menu')) return;
+      closeMessageMenus();
+    });
     document.querySelector('[data-chat-search]')?.addEventListener('input', renderList);
     const sharedUrl = new URLSearchParams(window.location.search).get('share');
     const messageDraft = document.querySelector('[data-chat-form] textarea');
     if (sharedUrl && messageDraft && !messageDraft.value) messageDraft.value = `Take a look at this post: ${sharedUrl}`;
   },
   async action(name, element) {
+    if (name === 'chat-message-menu') {
+      const menu = element.closest('.chat-message-menu');
+      const options = menu?.querySelector('.chat-message-options');
+      const opening = options?.hidden !== false;
+      closeMessageMenus();
+      if (options && opening) {
+        options.hidden = false;
+        element.setAttribute('aria-expanded', 'true');
+      }
+      return;
+    }
     if (name === 'select-chat') {
       const chatId = element.dataset.chatId || '';
       const closing = activeChatId === chatId;
@@ -1264,7 +1297,7 @@ Gather.start({
       const bubble = element.closest('.chat-message');
       if (!Gather.state.chats.length && bubble?.dataset.original) {
         const time = bubble.dataset.sent || '';
-        bubble.innerHTML = `${Gather.escapeHTML(bubble.dataset.original)}<div class="chat-message-actions"><button type="button" data-action="edit-chat-message">Edit</button><button type="button" data-action="delete-chat-message">Delete</button></div><time>${Gather.escapeHTML(time)}</time>`;
+        bubble.innerHTML = `${Gather.escapeHTML(bubble.dataset.original)}${mineMessageTools()}<time>${Gather.escapeHTML(time)}</time>`;
         return;
       }
       renderThread();
@@ -1303,7 +1336,7 @@ Gather.start({
       const bubble = editForm.closest('.chat-message');
       if (!text || !bubble) return;
       const time = bubble.dataset.sent || '';
-      bubble.innerHTML = `${Gather.escapeHTML(text)}<div class="chat-message-actions"><button type="button" data-action="edit-chat-message">Edit</button><button type="button" data-action="delete-chat-message">Delete</button></div><time>${Gather.escapeHTML(time)}</time>`;
+      bubble.innerHTML = `${Gather.escapeHTML(text)}${mineMessageTools()}<time>${Gather.escapeHTML(time)}</time>`;
       return;
     }
     const form = event.target.closest('[data-chat-form]');
