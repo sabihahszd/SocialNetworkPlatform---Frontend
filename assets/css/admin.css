@@ -872,7 +872,7 @@ select:focus-visible {
 .comment-meta {
     display: flex;
     flex-wrap: wrap;
-    align-items: baseline;
+    align-items: center;
     gap: 4px 6px;
     line-height: 1.35;
 }
@@ -896,10 +896,12 @@ select:focus-visible {
     line-height: 1.55;
 }
 
-.comment-tools {
-    display: flex;
-    gap: 10px;
-    margin: 0;
+.comment-body .post-menu {
+    width: 28px;
+    height: 28px;
+    margin: 0 0 0 auto;
+    flex: 0 0 auto;
+    font-size: 16px;
 }
 
 .comment-replies {
@@ -907,19 +909,6 @@ select:focus-visible {
     margin-top: 2px;
 }
 
-.comment-reply-button {
-    padding: 0;
-    border: 0;
-    color: #87938b;
-    background: transparent;
-    cursor: pointer;
-    font-size: 10px;
-}
-
-.comment-reply-button:hover {
-    color: var(--forest);
-    text-decoration: underline;
-}
 .comment-body .post-actions {
     margin: 2px 0 0;
     padding-top: 0;

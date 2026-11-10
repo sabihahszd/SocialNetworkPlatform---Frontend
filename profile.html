@@ -75,12 +75,8 @@
                 <h2 data-profile-full-name></h2>
                 <p class="profile-handle" data-profile-handle></p>
                 <p class="profile-bio" data-profile-bio></p>
-                <div class="profile-meta"><span data-profile-location></span><span data-profile-joined></span></div>
-                <div class="profile-counts"><button type="button" data-action="show-connections"
-                        data-connection="following" aria-label="Show following"><strong data-following-total></strong>
-                        Following</button><button type="button" data-action="show-connections"
-                        data-connection="followers" aria-label="Show followers"><strong data-followers-total></strong>
-                        Followers</button><button type="button" data-action="show-connections" data-connection="friends"
+                <div class="profile-meta"><span data-profile-location hidden></span><span data-profile-joined></span></div>
+                <div class="profile-counts"><button type="button" data-action="show-connections" data-connection="friends"
                         aria-label="Show friends"><strong data-friends-total></strong> Friends</button></div>
             </section>
             <div class="feed-tabs profile-tabs" role="tablist"><button class="feed-tab active"
@@ -179,12 +175,7 @@
     <dialog class="modal" data-connections-modal>
         <div class="modal-content"><button class="modal-close" type="button" data-action="close-dialog"
                 aria-label="Close">×</button>
-            <h2 data-connections-title>Following</h2>
-            <div class="feed-tabs connection-tabs" role="tablist" aria-label="People lists"><button class="feed-tab"
-                    type="button" data-action="show-connections" data-connection="following">Following</button><button
-                    class="feed-tab" type="button" data-action="show-connections"
-                    data-connection="followers">Followers</button><button class="feed-tab" type="button"
-                    data-action="show-connections" data-connection="friends">Friends</button></div>
+            <h2 data-connections-title>Friends</h2>
             <div data-connection-list></div>
         </div>
     </dialog>

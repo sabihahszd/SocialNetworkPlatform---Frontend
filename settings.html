@@ -136,13 +136,27 @@
                                 </label>
                                 <label class="field-label">
                                     New password <span class="optional">leave blank to keep current</span>
-                                    <input name="password" type="password" minlength="6" autocomplete="new-password"
-                                        placeholder="At least 6 characters">
+                                    <span class="password-field"><input name="password" type="password" minlength="8"
+                                            autocomplete="new-password" placeholder="8+ characters, a capital, and a symbol"><button
+                                            class="password-toggle" type="button" data-password-toggle
+                                            aria-label="Show password" aria-pressed="false"><i
+                                                class="fa-regular fa-eye" aria-hidden="true"></i></button></span>
                                 </label>
                                 <label class="field-label">
                                     Confirm new password
-                                    <input name="password-confirm" type="password" autocomplete="new-password"
-                                        placeholder="Repeat new password">
+                                    <span class="password-field"><input name="password-confirm" type="password"
+                                            autocomplete="new-password" placeholder="Repeat new password"><button
+                                            class="password-toggle" type="button" data-password-toggle
+                                            aria-label="Show password" aria-pressed="false"><i
+                                                class="fa-regular fa-eye" aria-hidden="true"></i></button></span>
+                                </label>
+                                <label class="field-label">
+                                    Current password <span class="optional">required to save</span>
+                                    <span class="password-field"><input name="current-password" type="password" required
+                                            autocomplete="current-password" placeholder="Your current password"><button
+                                            class="password-toggle" type="button" data-password-toggle
+                                            aria-label="Show password" aria-pressed="false"><i
+                                                class="fa-regular fa-eye" aria-hidden="true"></i></button></span>
                                 </label>
                             </div>
 

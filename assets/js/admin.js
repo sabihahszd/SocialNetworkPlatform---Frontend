@@ -5,8 +5,6 @@
     currentUserId: '',
     users: [],
     friends: [],
-    following: [],
-    followers: [],
     outgoingRequests: [],
     posts: [],
     notifications: [],
@@ -406,6 +404,9 @@
   }
 
   function renderComment(comment, postId, nested = false, includeReplies = true) {
+    if (comment.authorId && comment.authorId !== state.currentUserId && isBlocked(comment.authorId)) {
+      return includeReplies ? (comment.replies || []).map(reply => renderComment(reply, postId, nested)).join('') : '';
+    }
     const lookedUp = userById(comment.authorId);
     const author = {
       ...lookedUp,
@@ -414,7 +415,6 @@
       username: comment.authorUsername || lookedUp.username,
       photo: comment.authorPhoto || lookedUp.photo
     };
-    const manage = author.id === state.currentUserId ? `<button class="comment-reply-button" type="button" data-action="edit-comment" data-comment-id="${escapeHTML(comment.id)}">Edit</button><button class="comment-reply-button" type="button" data-action="delete-comment" data-comment-id="${escapeHTML(comment.id)}">Delete</button>` : '';
     const replies = includeReplies ? (comment.replies || []).map(reply => renderComment(reply, postId, true)).join('') : '';
     const thread = replies ? `<div class="comment-replies">${replies}</div>` : '';
     const commentId = escapeHTML(comment.id);
@@ -422,8 +422,9 @@
     const replyCount = (comment.replies || []).length;
     const actions = `<div class="post-actions"><button class="post-action" type="button" data-action="comment-like" aria-label="Like"><i class="fa-regular fa-heart"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="comment-repost" aria-label="Repost"><i class="fa-solid fa-retweet"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="open-post" data-post-id="${safePostId}" data-comment-id="${commentId}" aria-label="Open replies"><i class="fa-regular fa-comment"></i><span class="action-count">${replyCount}</span></button><button class="post-action" type="button" data-action="comment-bookmark" aria-label="Save"><i class="fa-regular fa-bookmark"></i><span class="action-count">0</span></button><button class="post-action" type="button" data-action="share-post" data-post-id="${safePostId}" aria-label="Share"><i class="fa-solid fa-share-nodes"></i></button></div>`;
     const form = `<form class="comment-form" data-comment-form data-reply-parent="${commentId}"><input name="comment" aria-label="Write a reply" placeholder="Add a thoughtful reply..." maxlength="240" required><button type="submit">Reply</button></form>`;
-    const tools = manage ? `<div class="comment-tools">${manage}</div>` : '';
-    return `<div class="${nested ? 'comment-reply' : 'comment-item'}" data-comment-id="${commentId}"><div class="comment-thread"><div class="comment-rail"><a class="comment-avatar" href="${profileHref(author)}" aria-label="${escapeHTML(author.name)} profile">${avatar(author, 'avatar-small')}</a></div><div class="comment-body"><div class="comment-meta"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><time class="comment-time">${prettyTime(comment.createdAt)}</time></div><p class="comment-text">${escapeHTML(comment.text)}</p>${actions}${form}${tools}${thread}</div></div></div>`;
+    const menu = `<button class="icon-button post-menu" type="button" data-action="comment-options" data-comment-id="${commentId}" data-post-id="${safePostId}" aria-label="Comment options">···</button>`;
+    return `<div class="${nested ? 'comment-reply' : 'comment-item'}" data-comment-id="${commentId}"><div class="comment-thread"><div class="comment-rail"><a class="comment-avatar" href="${profileHref(author)}" aria-label="${escapeHTML(author.name)} profile">${avatar(author, 'avatar-small')}</a></div><div class="comment-body"><div class="comment-meta"><strong>${escapeHTML(author.name)}</strong><span class="handle">@${escapeHTML(author.username)}</span><time class="comment-time">${prettyTime(comment.createdAt)}</time>${menu}</div><p class="comment-text">${escapeHTML(comment.text)}</p>${actions}${form}${thread}</div></div></div>`;
+
   }
 
   function renderPost(post, { readOnly = false } = {}) {
@@ -448,7 +449,7 @@
     if (document.querySelector('[data-post-action-styles]')) return;
     const style = document.createElement('style');
     style.dataset.postActionStyles = '';
-    style.textContent = 'html.reduce-motion *{animation-duration:0s!important;transition:none!important;scroll-behavior:auto!important}input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea{border-radius:10px!important}.gather-action-dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);padding:0;border:1px solid var(--line,#e5e9e3);border-radius:10px;color:var(--ink,#23332e);background:var(--paper,#fff);box-shadow:0 12px 40px rgba(25,50,38,.15)}.gather-action-dialog::backdrop{background:rgba(28,45,37,.45);backdrop-filter:blur(3px)}.gather-action-content{position:relative;display:grid;gap:11px;padding:28px}.gather-action-content h2{margin:0;font-size:22px}.gather-action-content .modal-copy{margin:0 0 3px;color:var(--muted,#7a8780);font-size:12px}.gather-action-options{display:grid;gap:8px}.gather-action-options a{text-align:center}.gather-action-section-title{margin:4px 0 0;color:var(--muted,#7a8780);font-size:10px;font-weight:700;text-transform:uppercase}.gather-action-notice{min-height:16px;margin:0;color:var(--forest-deep,#58476f);font-size:11px}.gather-action-dialog .field-label{margin:0}.gather-action-dialog .field-label input{width:100%}.post-action.liked{color:var(--forest-deep,#58476f)}.post-action.reposted{color:var(--forest-deep,#58476f)}.post-action.bookmarked{color:var(--forest-deep,#58476f)}.comment-content{display:flex;align-items:flex-start;gap:8px}.comment-tools,.chat-message-actions{display:flex;gap:10px;margin-top:4px}.comment-tools button,.chat-message-actions button{padding:0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;opacity:.76}.comment-tools button:hover,.chat-message-actions button:hover{opacity:1;text-decoration:underline}.chat-message-actions{justify-content:flex-end}.inline-edit-form{display:grid;gap:6px}.inline-edit-form textarea{width:100%;padding:7px;border:1px solid var(--line,#e5e9e3);background:white;font:inherit;border-radius:10px!important}.inline-edit-form>div{display:flex;justify-content:flex-end;gap:9px}.inline-edit-form button{padding:2px 0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;font-weight:700}.banner-photo-preview{width:100%;height:82px;border-radius:8px;object-fit:cover;background:#efeaf5}.brand-mark img,.auth-logo-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.admin-brand-form{display:grid;gap:12px;max-width:560px}.admin-member-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.post-action i{font-size:16px;line-height:1;pointer-events:none}.post-card{cursor:pointer}.post-card .comment-list{display:none!important}[data-home-post-detail] .comment-list{display:grid!important}.comment-form{display:none!important}.comment-form.is-open{display:flex!important}.avatar[data-user-id]{cursor:pointer}.post-action.reposted{color:#806c9c}.post-action .action-count{min-width:1ch;font-size:12px;font-weight:600;line-height:1}.share-chat-list{display:grid;gap:4px}.share-chat{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:10px;text-align:left}.share-chat:hover{background:var(--leaf-pale,#f2ecf8)}.share-chat .avatar{width:36px;height:36px;font-size:13px}.share-chat-copy{display:grid;min-width:0;flex:1}.share-chat-copy span{color:var(--muted,#7a8780);font-size:11px}.share-send{margin-left:auto;padding:6px 12px;border:1px solid var(--line,#e6e1ee);border-radius:999px;color:var(--forest,#806c9c);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.share-send:hover{background:var(--leaf-pale,#f2ecf8)}.share-send:disabled{color:var(--muted,#7a8780);cursor:default}.share-platforms{display:flex;gap:10px;margin-top:8px}.share-platforms a,.share-platforms button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line,#e6e1ee);border-radius:50%;color:#806c9c;background:#fff;font-size:16px;text-decoration:none;cursor:pointer}.share-platforms a:hover,.share-platforms button:hover{background:var(--leaf-pale,#f2ecf8)}input[type="file"]::file-selector-button,input[type="file"]::-webkit-file-upload-button{margin-right:10px;padding:0 14px;height:32px;border:1px solid #e4dced;border-radius:20px;color:var(--forest,#806c9c);background:#fff;cursor:pointer;font:inherit;font-size:11px;font-weight:700;transition:background .16s ease}input[type="file"]::file-selector-button:hover,input[type="file"]::-webkit-file-upload-button:hover{background:#f4f0f8}.field-label input[type="file"],.auth-form .field-label input[type="file"],.register-form-wrap .auth-form .field-label input[type="file"]{min-height:32px;padding:0;border:0;background:transparent;font-size:12px;font-weight:400}.fa-regular.fa-house{width:1em;height:1em;font-size:1.22em;vertical-align:-.2em}.fa-regular.fa-house::before{content:"" !important;display:block;width:1em;height:1em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat}.file-placeholder-mark{position:relative;display:grid;place-items:center;min-height:112px;overflow:hidden;border-radius:10px;background:#e3e1e6 center/cover no-repeat;color:#8a8491;font-size:22px}.file-placeholder:has([data-avatar-file]) .file-placeholder-mark{width:112px}.file-placeholder-mark:hover{background-color:#d8d5db}.file-placeholder-mark i{pointer-events:none}.file-placeholder.has-file .file-placeholder-mark i{display:none}.file-placeholder-mark input[type="file"]{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}.file-placeholder.has-file+.photo-preview,.file-placeholder.has-file+.card-art-banner,.file-placeholder.has-file+.banner-photo-preview{display:none!important}.trends-section .trend-stamp{overflow:hidden;background-color:var(--stamp,#e1d5f0);background-position:center 48%;background-size:cover;background-repeat:no-repeat;color:transparent;font-size:0}';
+    style.textContent = 'html.reduce-motion *{animation-duration:0s!important;transition:none!important;scroll-behavior:auto!important}input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea{border-radius:10px!important}.gather-action-dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);padding:0;border:1px solid var(--line,#e5e9e3);border-radius:10px;color:var(--ink,#23332e);background:var(--paper,#fff);box-shadow:0 12px 40px rgba(25,50,38,.15)}.gather-action-dialog::backdrop{background:rgba(28,45,37,.45);backdrop-filter:blur(3px)}.gather-action-content{position:relative;display:grid;gap:11px;padding:28px}.gather-action-content h2{margin:0;font-size:22px}.gather-action-content .modal-copy{margin:0 0 3px;color:var(--muted,#7a8780);font-size:12px}.gather-action-options{display:grid;gap:8px}.gather-action-options a{text-align:center}.gather-action-section-title{margin:4px 0 0;color:var(--muted,#7a8780);font-size:10px;font-weight:700;text-transform:uppercase}.gather-action-notice{min-height:16px;margin:0;color:var(--forest-deep,#58476f);font-size:11px}.gather-action-dialog .field-label{margin:0}.gather-action-dialog .field-label input{width:100%}.post-action.liked{color:var(--forest-deep,#58476f)}.post-action.reposted{color:var(--forest-deep,#58476f)}.post-action.bookmarked{color:var(--forest-deep,#58476f)}.comment-content{display:flex;align-items:flex-start;gap:8px}.chat-message-actions{display:flex;gap:10px;margin-top:4px}.chat-message-actions button{padding:0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;opacity:.76}.chat-message-actions button:hover{opacity:1;text-decoration:underline}.chat-message-actions{justify-content:flex-end}.inline-edit-form{display:grid;gap:6px}.inline-edit-form textarea{width:100%;padding:7px;border:1px solid var(--line,#e5e9e3);background:white;font:inherit;border-radius:10px!important}.inline-edit-form>div{display:flex;justify-content:flex-end;gap:9px}.inline-edit-form button{padding:2px 0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;font-weight:700}.banner-photo-preview{width:100%;height:82px;border-radius:8px;object-fit:cover;background:#efeaf5}.brand-mark img,.auth-logo-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.admin-brand-form{display:grid;gap:12px;max-width:560px}.admin-member-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.post-action i{font-size:16px;line-height:1;pointer-events:none}.post-card{cursor:pointer}.post-card .comment-list{display:none!important}[data-home-post-detail] .comment-list{display:grid!important}.comment-form{display:none!important}.comment-form.is-open{display:flex!important}.avatar[data-user-id]{cursor:pointer}.post-action.reposted{color:#806c9c}.post-action .action-count{min-width:1ch;font-size:12px;font-weight:600;line-height:1}.share-chat-list{display:grid;gap:4px}.share-chat{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:10px;text-align:left}.share-chat:hover{background:var(--leaf-pale,#f2ecf8)}.share-chat .avatar{width:36px;height:36px;font-size:13px}.share-chat-copy{display:grid;min-width:0;flex:1}.share-chat-copy span{color:var(--muted,#7a8780);font-size:11px}.share-send{margin-left:auto;padding:6px 12px;border:1px solid var(--line,#e6e1ee);border-radius:999px;color:var(--forest,#806c9c);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.share-send:hover{background:var(--leaf-pale,#f2ecf8)}.share-send:disabled{color:var(--muted,#7a8780);cursor:default}.share-platforms{display:flex;gap:10px;margin-top:8px}.share-platforms a,.share-platforms button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line,#e6e1ee);border-radius:50%;color:#806c9c;background:#fff;font-size:16px;text-decoration:none;cursor:pointer}.share-platforms a:hover,.share-platforms button:hover{background:var(--leaf-pale,#f2ecf8)}input[type="file"]::file-selector-button,input[type="file"]::-webkit-file-upload-button{margin-right:10px;padding:0 14px;height:32px;border:1px solid #e4dced;border-radius:20px;color:var(--forest,#806c9c);background:#fff;cursor:pointer;font:inherit;font-size:11px;font-weight:700;transition:background .16s ease}input[type="file"]::file-selector-button:hover,input[type="file"]::-webkit-file-upload-button:hover{background:#f4f0f8}.field-label input[type="file"],.auth-form .field-label input[type="file"],.register-form-wrap .auth-form .field-label input[type="file"]{min-height:32px;padding:0;border:0;background:transparent;font-size:12px;font-weight:400}.fa-regular.fa-house{width:1em;height:1em;font-size:1.22em;vertical-align:-.2em}.fa-regular.fa-house::before{content:"" !important;display:block;width:1em;height:1em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat}.file-placeholder-mark{position:relative;display:grid;place-items:center;min-height:112px;overflow:hidden;border-radius:10px;background:#e3e1e6 center/cover no-repeat;color:#8a8491;font-size:22px}.file-placeholder:has([data-avatar-file]) .file-placeholder-mark{width:112px}.file-placeholder-mark:hover{background-color:#d8d5db}.file-placeholder-mark i{pointer-events:none}.file-placeholder.has-file .file-placeholder-mark i{display:none}.file-placeholder-mark input[type="file"]{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}.file-placeholder.has-file+.photo-preview,.file-placeholder.has-file+.card-art-banner,.file-placeholder.has-file+.banner-photo-preview{display:none!important}.trends-section .trend-stamp{overflow:hidden;background-color:var(--stamp,#e1d5f0);background-position:center 48%;background-size:cover;background-repeat:no-repeat;color:transparent;font-size:0}';
     document.head.append(style);
   }
 
@@ -721,14 +722,34 @@
         }
         return true;
       }
+      case 'comment-options': {
+        const commentId = element.dataset.commentId || '';
+        const postId = element.dataset.postId || element.closest('.post-card')?.dataset.postId || '';
+        const post = state.posts.find(item => item.id === postId);
+        const comment = post && findComment(post.comments, commentId);
+        const own = comment?.authorId === state.currentUserId;
+        const actions = own
+          ? `<button class="button button-secondary" type="button" data-action="edit-comment" data-comment-id="${escapeHTML(commentId)}" data-post-id="${escapeHTML(postId)}">Edit</button><button class="button button-secondary" type="button" data-action="delete-comment" data-comment-id="${escapeHTML(commentId)}" data-post-id="${escapeHTML(postId)}">Delete</button>`
+          : `<button class="button button-secondary" type="button" data-action="report-post" data-post-id="${escapeHTML(postId)}" data-comment-id="${escapeHTML(commentId)}">Report</button><button class="button button-secondary" type="button" data-action="block-author" data-user-id="${escapeHTML(comment?.authorId || '')}">Block user</button>`;
+        ensurePostOptionsModal();
+        const dialog = document.querySelector('[data-post-options-modal]');
+        const title = dialog.querySelector('h2');
+        if (title) title.textContent = 'Comment options';
+        dialog.querySelector('[data-post-options-list]').innerHTML = actions;
+        dialog.showModal();
+        return true;
+      }
       case 'edit-comment':
       case 'delete-comment': {
         const post = findPost(element);
         const comment = post && findComment(post.comments, element.dataset.commentId);
         if (!comment || comment.authorId !== state.currentUserId) return true;
         if (name === 'edit-comment') {
-          const textNode = element.closest('.comment-item, .comment-reply')?.querySelector('.comment-text');
-          if (!textNode) return true;
+          document.querySelector('[data-post-options-modal]')?.close();
+          const card = visiblePostCard(post.id);
+          const host = card?.querySelector(`[data-comment-id="${CSS.escape(comment.id)}"]`);
+          const textNode = host?.querySelector(':scope > .comment-thread > .comment-body > .comment-text');
+          if (!textNode || host.querySelector('[data-edit-comment-form]')) return true;
           const form = document.createElement('form');
           form.className = 'inline-edit-form';
           form.dataset.editCommentForm = '';
@@ -739,6 +760,7 @@
           form.querySelector('textarea').focus();
           return true;
         }
+        document.querySelector('[data-post-options-modal]')?.close();
         return true;
       }
       case 'cancel-comment-edit':
@@ -813,11 +835,16 @@
         return true;
       case 'post-options': {
         const id = element.closest('.post-card')?.dataset.postId || '';
+        const post = state.posts.find(item => item.id === id);
+        const own = post?.authorId === state.currentUserId;
+        const actions = own
+          ? `<button class="button button-secondary" type="button" data-action="edit-post" data-post-id="${escapeHTML(id)}">Edit</button><button class="button button-secondary" type="button" data-action="delete-post" data-post-id="${escapeHTML(id)}">Delete</button>`
+          : `<button class="button button-secondary" type="button" data-action="report-post" data-post-id="${escapeHTML(id)}">Report</button><button class="button button-secondary" type="button" data-action="block-author" data-user-id="${escapeHTML(post?.authorId || '')}">Block user</button>`;
         ensurePostOptionsModal();
         const dialog = document.querySelector('[data-post-options-modal]');
         const title = dialog.querySelector('h2');
         if (title) title.textContent = 'Post options';
-        dialog.querySelector('[data-post-options-list]').innerHTML = `<button class="button button-secondary" type="button" data-action="edit-post" data-post-id="${escapeHTML(id)}">Edit</button><button class="button button-secondary" type="button" data-action="delete-post" data-post-id="${escapeHTML(id)}">Delete</button><button class="button button-secondary" type="button" data-action="report-post" data-post-id="${escapeHTML(id)}">Report</button>`;
+        dialog.querySelector('[data-post-options-list]').innerHTML = actions;
         dialog.showModal();
         return true;
       }
@@ -842,11 +869,30 @@
         if (id) document.querySelectorAll('.post-card').forEach(card => { if (card.dataset.postId === id) card.remove(); });
         return true;
       }
+      case 'block-author': {
+        document.querySelector('[data-post-options-modal]')?.close();
+        const userId = element.dataset.userId || '';
+        if (!userId || userId === state.currentUserId || !api.token()) return true;
+        try {
+          const response = await fetch(`http://localhost:5039/api/settings/blocked/${encodeURIComponent(userId)}`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${api.token()}` }
+          });
+          if (!response.ok) return true;
+          const settings = await response.json();
+          Object.assign(appSettings, settings);
+          session.render?.();
+        } catch { /* The menu is already closed. */ }
+        return true;
+      }
       case 'report-post': {
         document.querySelector('[data-post-options-modal]')?.close();
         ensureReportModal();
         const dialog = document.querySelector('[data-report-modal]');
-        dialog.dataset.postId = element.dataset.postId;
+        dialog.dataset.postId = element.dataset.postId || '';
+        dialog.dataset.commentId = element.dataset.commentId || '';
+        const heading = dialog.querySelector('h2');
+        if (heading) heading.textContent = dialog.dataset.commentId ? 'Report this comment' : 'Report this post';
         dialog.querySelector('[data-report-notice]').textContent = '';
         dialog.showModal();
         return true;
