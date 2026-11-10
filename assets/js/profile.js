@@ -1248,6 +1248,76 @@ function renderFeeds() {
   });
 }
 
+function friendRelation(userId) {
+  if (!userId || userId === Gather.state.currentUserId) return 'own';
+  if (Gather.isFriend(userId)) return 'remove';
+  if (Gather.isPending(userId)) return 'waiting';
+  return 'add';
+}
+
+function paintFriendCounts() {
+  document.querySelectorAll('[data-friends-total]').forEach(node => { node.textContent = profileView.friends.length; });
+}
+
+let friendWatch = 0;
+
+function paintFriendButton() {
+  const button = document.querySelector('[data-profile-friend]');
+  if (!button) return;
+  const user = viewedUser();
+  const relation = friendRelation(user?.id);
+  const show = relation !== 'own' && !!user;
+  button.classList.toggle('hidden', !show);
+  if (!show) {
+    clearInterval(friendWatch);
+    friendWatch = 0;
+    return;
+  }
+  button.dataset.userId = user.id;
+  button.disabled = relation === 'waiting';
+  button.classList.toggle('button-secondary', relation === 'add');
+  button.classList.toggle('button-following', relation !== 'add');
+  button.textContent = relation === 'remove' ? 'Remove' : relation === 'waiting' ? 'Waiting' : 'Add';
+  button.setAttribute('aria-label', relation === 'remove'
+    ? `Remove ${user.name} from friends`
+    : relation === 'waiting'
+      ? `Friend request to ${user.name} is waiting`
+      : `Add ${user.name}`);
+  clearInterval(friendWatch);
+  friendWatch = 0;
+  if (relation === 'waiting') {
+    friendWatch = window.setInterval(() => {
+      if (document.hidden) return;
+      refreshFriendship().catch(() => {});
+    }, 4000);
+  }
+}
+
+async function refreshFriendship() {
+  const viewedId = viewedUserId();
+  const [friends, outgoing, subjectFriends] = await Promise.all([
+    apiFetch('/api/friends').catch(() => null),
+    apiFetch('/api/friends/requests/outgoing').catch(() => null),
+    viewedId && viewedId !== Gather.state.currentUserId
+      ? apiFetch(`/api/friends/of/${encodeURIComponent(viewedId)}`).catch(() => null)
+      : Promise.resolve(null)
+  ]);
+  if (!Gather.api.token()) return;
+  if (friends) Gather.state.friends = friends.map(item => item.friendId).filter(Boolean);
+  if (outgoing) Gather.state.outgoingRequests = outgoing.map(item => item.toUserId).filter(Boolean);
+  if (viewedId && viewedId !== Gather.state.currentUserId) {
+    if (subjectFriends) profileView.friends = subjectFriends.friendIds || [];
+  } else {
+    profileView.friends = Gather.state.friends.slice();
+  }
+  paintFriendCounts();
+  paintFriendButton();
+  const connections = document.querySelector('[data-connections-modal]');
+  if (connections?.open && connections.querySelector('.connection-tabs .feed-tab.active')?.dataset.connection === 'friends') {
+    renderConnectionList('friends');
+  }
+}
+
 function render() {
   const user = viewedUser();
   const own = viewingOwnProfile();
@@ -1279,6 +1349,7 @@ function render() {
       menu.classList.toggle('hidden', !user);
     }
   }
+  paintFriendButton();
   if (!user) {
     if (!Gather.state.currentUserId && !Gather.state.users.length) return;
     document.querySelectorAll('[data-profile-name], [data-profile-full-name]').forEach(node => { node.textContent = 'Profile unavailable'; });
@@ -1476,7 +1547,8 @@ const profileActions = new Set([
   'toggle-community',
   'save-profile',
   'block-user',
-  'create-post'
+  'create-post',
+  'profile-friend'
 ]);
 
 function showProfileError(element, error) {
@@ -1552,11 +1624,12 @@ async function loadProfile() {
     rememberUser(me);
     Gather.renderShell();
 
-    const [site, settings, users, friends, posts, communities, notifications, chats, follows] = await Promise.all([
+    const [site, settings, users, friends, outgoing, posts, communities, notifications, chats, follows] = await Promise.all([
       apiFetch('/api/site'),
       apiFetch('/api/settings'),
       apiFetch('/api/users'),
       apiFetch('/api/friends').catch(() => []),
+      apiFetch('/api/friends/requests/outgoing').catch(() => []),
       apiFetch('/api/posts').catch(() => []),
       apiFetch('/api/communities').catch(() => []),
       apiFetch('/api/notifications').catch(() => []),
@@ -1569,7 +1642,8 @@ async function loadProfile() {
     rememberUser(me);
     if (site) Gather.state.site = { ...Gather.state.site, ...site };
     if (settings) Object.assign(Gather.appSettings, settings);
-    Gather.state.friends = (friends || []).map(item => item.friendId);
+    Gather.state.friends = (friends || []).map(item => item.friendId).filter(Boolean);
+    Gather.state.outgoingRequests = (outgoing || []).map(item => item.toUserId).filter(Boolean);
     Gather.state.following = follows?.following || [];
     Gather.state.followers = follows?.followers || [];
     Gather.state.posts = posts || [];
@@ -1675,6 +1749,40 @@ async function submitProfilePost() {
 async function handleProfileAction(name, element) {
   if (name === 'create-post') {
     await submitProfilePost();
+    return;
+  }
+
+  if (name === 'profile-friend') {
+    const userId = viewedUserId();
+    if (!userId || userId === Gather.state.currentUserId) return;
+    const relation = friendRelation(userId);
+    if (relation === 'waiting') return;
+    if (relation === 'remove') {
+      await apiFetch(`/api/friends/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+      if (!Gather.api.token()) return;
+      Gather.state.friends = Gather.state.friends.filter(id => id !== userId);
+      Gather.state.outgoingRequests = Gather.state.outgoingRequests.filter(id => id !== userId);
+      profileView.friends = profileView.friends.filter(id => id !== Gather.state.currentUserId);
+      paintFriendCounts();
+      paintFriendButton();
+      return;
+    }
+    try {
+      const request = await apiFetch(`/api/friends/requests/${encodeURIComponent(userId)}`, { method: 'POST' });
+      if (!Gather.api.token()) return;
+      if (request?.status === 'pending' && !Gather.state.outgoingRequests.includes(userId)) {
+        Gather.state.outgoingRequests.push(userId);
+      }
+    } catch (error) {
+      if (!/already sent you a friend request/i.test(error?.message || '')) throw error;
+      const accepted = await apiFetch(`/api/friends/requests/${encodeURIComponent(userId)}/accept`, { method: 'POST' });
+      if (!accepted || !Gather.api.token()) return;
+      if (!Gather.state.friends.includes(userId)) Gather.state.friends.push(userId);
+      if (!profileView.friends.includes(Gather.state.currentUserId)) profileView.friends.push(Gather.state.currentUserId);
+      Gather.state.outgoingRequests = Gather.state.outgoingRequests.filter(id => id !== userId);
+    }
+    paintFriendCounts();
+    paintFriendButton();
     return;
   }
 
@@ -1813,6 +1921,11 @@ document.addEventListener('submit', event => {
   event.stopImmediatePropagation();
   handleProfileSubmit(form).catch(error => showProfileError(form, error));
 }, true);
+
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden || viewingOwnProfile()) return;
+  refreshFriendship().catch(() => {});
+});
 
 loadProfile();
 

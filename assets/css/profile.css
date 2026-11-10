@@ -1574,6 +1574,16 @@ select:focus-visible {
     gap: 8px;
 }
 
+.profile-header-actions [data-profile-friend]:disabled {
+    cursor: default;
+    opacity: 1;
+}
+
+.profile-header-actions [data-profile-friend]:disabled:hover {
+    transform: none;
+    background: white;
+}
+
 .profile-share {
     width: 34px;
     height: 34px;

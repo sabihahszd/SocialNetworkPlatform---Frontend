@@ -1113,7 +1113,8 @@
     readPhotoFile,
     readMediaFile,
     clearMediaInput,
-    applyBranding
+    applyBranding,
+    renderShell
   };
 })();
 
@@ -1463,6 +1464,16 @@ async function loadAdmin() {
     }));
     paintAdmin();
   } catch (error) {
+    if (!Gather.state.site.siteName) {
+      try {
+        const site = await apiFetch('/api/site');
+        if (site) Gather.state.site = { ...Gather.state.site, ...site };
+      } catch {
+        // The rail still renders with the brand already on the page.
+      }
+    }
+    Gather.renderShell();
+    Gather.applyBranding(Gather.state.site);
     if (error.status === 403 || (Gather.state.currentUserId && !Gather.isAdmin())) {
       setAdminAccess(false);
       return;
