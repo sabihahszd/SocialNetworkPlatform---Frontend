@@ -449,7 +449,7 @@
     if (document.querySelector('[data-post-action-styles]')) return;
     const style = document.createElement('style');
     style.dataset.postActionStyles = '';
-    style.textContent = 'html.reduce-motion *{animation-duration:0s!important;transition:none!important;scroll-behavior:auto!important}input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea{border-radius:10px!important}.gather-action-dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);padding:0;border:1px solid var(--line,#e5e9e3);border-radius:10px;color:var(--ink,#23332e);background:var(--paper,#fff);box-shadow:0 12px 40px rgba(25,50,38,.15)}.gather-action-dialog::backdrop{background:rgba(28,45,37,.45);backdrop-filter:blur(3px)}.gather-action-content{position:relative;display:grid;gap:11px;padding:28px}.gather-action-content h2{margin:0;font-size:22px}.gather-action-content .modal-copy{margin:0 0 3px;color:var(--muted,#7a8780);font-size:12px}.gather-action-options{display:grid;gap:8px}.gather-action-options a{text-align:center}.gather-action-section-title{margin:4px 0 0;color:var(--muted,#7a8780);font-size:10px;font-weight:700;text-transform:uppercase}.gather-action-notice{min-height:16px;margin:0;color:var(--forest-deep,#58476f);font-size:11px}.gather-action-dialog .field-label{margin:0}.gather-action-dialog .field-label input{width:100%}.post-action.liked{color:var(--forest-deep,#58476f)}.post-action.reposted{color:var(--forest-deep,#58476f)}.post-action.bookmarked{color:var(--forest-deep,#58476f)}.comment-content{display:flex;align-items:flex-start;gap:8px}.chat-message-actions{display:flex;gap:10px;margin-top:4px}.chat-message-actions button{padding:0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;opacity:.76}.chat-message-actions button:hover{opacity:1;text-decoration:underline}.chat-message-actions{justify-content:flex-end}.inline-edit-form{display:grid;gap:6px}.inline-edit-form textarea{width:100%;padding:7px;border:1px solid var(--line,#e5e9e3);background:white;font:inherit;border-radius:10px!important}.inline-edit-form>div{display:flex;justify-content:flex-end;gap:9px}.inline-edit-form button{padding:2px 0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;font-weight:700}.banner-photo-preview{width:100%;height:82px;border-radius:8px;object-fit:cover;background:#efeaf5}.brand-mark img,.auth-logo-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.admin-brand-form{display:grid;gap:12px;max-width:560px}.admin-member-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.post-action i{font-size:16px;line-height:1;pointer-events:none}.post-card{cursor:pointer}.post-card .comment-list{display:none!important}[data-home-post-detail] .comment-list{display:grid!important}.comment-form{display:none!important}.comment-form.is-open{display:flex!important}.avatar[data-user-id]{cursor:pointer}.post-action.reposted{color:#806c9c}.post-action .action-count{min-width:1ch;font-size:12px;font-weight:600;line-height:1}.share-chat-list{display:grid;gap:4px}.share-chat{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:10px;text-align:left}.share-chat:hover{background:var(--leaf-pale,#f2ecf8)}.share-chat .avatar{width:36px;height:36px;font-size:13px}.share-chat-copy{display:grid;min-width:0;flex:1}.share-chat-copy span{color:var(--muted,#7a8780);font-size:11px}.share-send{margin-left:auto;padding:6px 12px;border:1px solid var(--line,#e6e1ee);border-radius:999px;color:var(--forest,#806c9c);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.share-send:hover{background:var(--leaf-pale,#f2ecf8)}.share-send:disabled{color:var(--muted,#7a8780);cursor:default}.share-platforms{display:flex;gap:10px;margin-top:8px}.share-platforms a,.share-platforms button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line,#e6e1ee);border-radius:50%;color:#806c9c;background:#fff;font-size:16px;text-decoration:none;cursor:pointer}.share-platforms a:hover,.share-platforms button:hover{background:var(--leaf-pale,#f2ecf8)}input[type="file"]::file-selector-button,input[type="file"]::-webkit-file-upload-button{margin-right:10px;padding:0 14px;height:32px;border:1px solid #e4dced;border-radius:20px;color:var(--forest,#806c9c);background:#fff;cursor:pointer;font:inherit;font-size:11px;font-weight:700;transition:background .16s ease}input[type="file"]::file-selector-button:hover,input[type="file"]::-webkit-file-upload-button:hover{background:#f4f0f8}.field-label input[type="file"],.auth-form .field-label input[type="file"],.register-form-wrap .auth-form .field-label input[type="file"]{min-height:32px;padding:0;border:0;background:transparent;font-size:12px;font-weight:400}.fa-regular.fa-house{width:1em;height:1em;font-size:1.22em;vertical-align:-.2em}.fa-regular.fa-house::before{content:"" !important;display:block;width:1em;height:1em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat}.file-placeholder-mark{position:relative;display:grid;place-items:center;min-height:112px;overflow:hidden;border-radius:10px;background:#e3e1e6 center/cover no-repeat;color:#8a8491;font-size:22px}.file-placeholder:has([data-avatar-file]) .file-placeholder-mark{width:112px}.file-placeholder-mark:hover{background-color:#d8d5db}.file-placeholder-mark i{pointer-events:none}.file-placeholder.has-file .file-placeholder-mark i{display:none}.file-placeholder-mark input[type="file"]{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}.file-placeholder.has-file+.photo-preview,.file-placeholder.has-file+.card-art-banner,.file-placeholder.has-file+.banner-photo-preview{display:none!important}.trends-section .trend-stamp{overflow:hidden;background-color:var(--stamp,#e1d5f0);background-position:center 48%;background-size:cover;background-repeat:no-repeat;color:transparent;font-size:0}';
+    style.textContent = 'html.reduce-motion *{animation-duration:0s!important;transition:none!important;scroll-behavior:auto!important}input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea{border-radius:10px!important}.gather-action-dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);padding:0;border:1px solid var(--line,#e5e9e3);border-radius:10px;color:var(--ink,#23332e);background:var(--paper,#fff);box-shadow:0 12px 40px rgba(25,50,38,.15)}.gather-action-dialog::backdrop{background:rgba(28,45,37,.45);backdrop-filter:blur(3px)}.gather-action-content{position:relative;display:grid;gap:11px;padding:28px}.gather-action-content h2{margin:0;font-size:22px}.gather-action-content .modal-copy{margin:0 0 3px;color:var(--muted,#7a8780);font-size:12px}.gather-action-options{display:grid;gap:8px}.gather-action-options a{text-align:center}.gather-action-section-title{margin:4px 0 0;color:var(--muted,#7a8780);font-size:10px;font-weight:700;text-transform:uppercase}.gather-action-notice{min-height:16px;margin:0;color:var(--forest-deep,#58476f);font-size:11px}.gather-action-dialog .field-label{margin:0}.gather-action-dialog .field-label input{width:100%}.post-action.liked{color:var(--forest-deep,#58476f)}.post-action.reposted{color:var(--forest-deep,#58476f)}.post-action.bookmarked{color:var(--forest-deep,#58476f)}.comment-content{display:flex;align-items:flex-start;gap:8px}.chat-message-actions{display:flex;gap:10px;margin-top:4px}.chat-message-actions button{padding:0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;opacity:.76}.chat-message-actions button:hover{opacity:1;text-decoration:underline}.chat-message-actions{justify-content:flex-end}.inline-edit-form{display:grid;gap:6px}.inline-edit-form textarea{width:100%;padding:7px;border:1px solid var(--line,#e5e9e3);background:white;font:inherit;border-radius:10px!important}.inline-edit-form>div{display:flex;justify-content:flex-end;gap:9px}.inline-edit-form button{padding:2px 0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;font-weight:700}.banner-photo-preview{width:100%;height:82px;border-radius:8px;object-fit:cover;background:#efeaf5}.brand-mark img,.auth-logo-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.admin-brand-form{display:grid;gap:12px;max-width:560px}.admin-member-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.post-action i{font-size:16px;line-height:1;pointer-events:none}.post-card{cursor:pointer}.post-card .comment-list{display:none!important}[data-home-post-detail] .comment-list{display:grid!important}.comment-form{display:none!important}.comment-form.is-open{display:flex!important}.avatar[data-user-id]{cursor:pointer}.post-action.reposted{color:#806c9c}.post-action .action-count{min-width:1ch;font-size:12px;font-weight:600;line-height:1}.share-chat-list{display:grid;gap:4px}.share-chat{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:10px;text-align:left}.share-chat .avatar{width:36px;height:36px;font-size:13px}.share-chat-copy{display:grid;min-width:0;flex:1}.share-chat-copy span{color:var(--muted,#7a8780);font-size:11px}.share-send{margin-left:auto;padding:6px 12px;border:1px solid var(--line,#e6e1ee);border-radius:999px;color:var(--forest,#806c9c);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.share-send:hover{background:var(--leaf-pale,#f2ecf8)}.share-send:disabled{color:var(--muted,#7a8780);cursor:default}.share-platforms{display:flex;gap:10px;margin-top:8px}.share-platforms a,.share-platforms button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line,#e6e1ee);border-radius:50%;color:#806c9c;background:#fff;font-size:16px;text-decoration:none;cursor:pointer}.share-platforms a:hover,.share-platforms button:hover{background:var(--leaf-pale,#f2ecf8)}input[type="file"]::file-selector-button,input[type="file"]::-webkit-file-upload-button{margin-right:10px;padding:0 14px;height:32px;border:1px solid #e4dced;border-radius:20px;color:var(--forest,#806c9c);background:#fff;cursor:pointer;font:inherit;font-size:11px;font-weight:700;transition:background .16s ease}input[type="file"]::file-selector-button:hover,input[type="file"]::-webkit-file-upload-button:hover{background:#f4f0f8}.field-label input[type="file"],.auth-form .field-label input[type="file"],.register-form-wrap .auth-form .field-label input[type="file"]{min-height:32px;padding:0;border:0;background:transparent;font-size:12px;font-weight:400}.fa-regular.fa-house{width:1em;height:1em;font-size:1.22em;vertical-align:-.2em}.fa-regular.fa-house::before{content:"" !important;display:block;width:1em;height:1em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat}.file-placeholder-mark{position:relative;display:grid;place-items:center;min-height:112px;overflow:hidden;border-radius:10px;background:#e3e1e6 center/cover no-repeat;color:#8a8491;font-size:22px}.file-placeholder:has([data-avatar-file]) .file-placeholder-mark{width:112px}.file-placeholder-mark:hover{background-color:#d8d5db}.file-placeholder-mark i{pointer-events:none}.file-placeholder.has-file .file-placeholder-mark i{display:none}.file-placeholder-mark input[type="file"]{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}.file-placeholder.has-file+.photo-preview,.file-placeholder.has-file+.card-art-banner,.file-placeholder.has-file+.banner-photo-preview{display:none!important}.trends-section .trend-stamp{overflow:hidden;background-color:var(--stamp,#e1d5f0);background-position:center 48%;background-size:cover;background-repeat:no-repeat;color:transparent;font-size:0}';
     document.head.append(style);
   }
 
@@ -1440,6 +1440,7 @@ function render() {
   document.title = `${user.name} — Gather`;
   if (own) fillEditor(user);
   renderFeeds();
+  linkPostMentions();
 }
 
 function renderConnectionList() {
@@ -1447,7 +1448,12 @@ function renderConnectionList() {
   if (!dialog) return;
   dialog.querySelector('[data-connections-title]').textContent = 'Friends';
   const people = profileView.friends.map(Gather.userById).filter(user => user?.id && user.id !== 'someone');
-  dialog.querySelector('[data-connection-list]').innerHTML = people.map(user => `<article class="friend-row">${Gather.avatar(user)}<div><strong>${Gather.escapeHTML(user.name)}</strong><span>@${Gather.escapeHTML(user.username)}</span></div><div class="friend-row-actions"><button class="icon-button" type="button" data-action="user-options" data-user-id="${Gather.escapeHTML(user.id)}" data-user-name="${Gather.escapeHTML(user.name)}" data-handle="@${Gather.escapeHTML(user.username)}" aria-label="Profile options">···</button></div></article>`).join('') || '<p class="empty-hint">No one here yet.</p>';
+  dialog.querySelector('[data-connection-list]').innerHTML = people.map(user => {
+    const remove = user.id !== Gather.state.currentUserId && Gather.isFriend(user.id)
+      ? `<button class="button button-small button-following friend-row-remove" type="button" data-action="remove-friend" data-user-id="${Gather.escapeHTML(user.id)}" aria-label="Remove ${Gather.escapeHTML(user.name)} from friends">Remove</button>`
+      : '';
+    return `<article class="friend-row">${Gather.avatar(user)}<div><strong>${Gather.escapeHTML(user.name)}</strong><span>@${Gather.escapeHTML(user.username)}</span></div>${remove}<div class="friend-row-actions"><button class="icon-button" type="button" data-action="user-options" data-user-id="${Gather.escapeHTML(user.id)}" data-user-name="${Gather.escapeHTML(user.name)}" data-handle="@${Gather.escapeHTML(user.username)}" aria-label="Profile options">···</button></div></article>`;
+  }).join('') || '<p class="empty-hint">No one here yet.</p>';
 }
 
 function ensureUserOptions() {
@@ -1464,7 +1470,7 @@ function ensureProfileReport() {
   const dialog = document.createElement('dialog');
   dialog.className = 'modal';
   dialog.dataset.profileReportModal = '';
-  dialog.innerHTML = '<div class="modal-content"><button class="modal-close" type="button" data-action="close-dialog" aria-label="Close">×</button><h2>Report this profile</h2><p class="modal-copy">Reports are private and reviewed by a moderator.</p><label class="field-label">What is the concern?<select><option>Spam or misleading content</option><option>Harassment or bullying</option><option>Hateful or harmful content</option><option>Something else</option></select></label><button class="button button-primary" type="button" data-action="submit-profile-report">Send report</button></div>';
+  dialog.innerHTML = '<div class="modal-content"><button class="modal-close" type="button" data-action="close-dialog" aria-label="Close">×</button><h2>Report this profile</h2><p class="modal-copy">Reports are private and reviewed by a moderator.</p><label class="field-label">What is the concern?<select><option>Spam or misleading content</option><option>Harassment or bullying</option><option>Hateful or harmful content</option><option>Something else</option></select></label><p class="report-notice" data-report-notice role="status"></p><button class="button button-primary" type="button" data-action="submit-profile-report">Send report</button></div>';
   document.body.append(dialog);
 }
 
@@ -1532,13 +1538,32 @@ Gather.start({
       return;
     }
     if (name === 'report-user') {
-      document.querySelector('[data-user-options-modal]')?.close();
+      const options = document.querySelector('[data-user-options-modal]');
       ensureProfileReport();
-      document.querySelector('[data-profile-report-modal]')?.showModal();
+      const dialog = document.querySelector('[data-profile-report-modal]');
+      if (dialog) dialog.dataset.userId = options?.dataset.userId || element.dataset.userId || '';
+      options?.close();
+      dialog?.showModal();
       return;
     }
     if (name === 'submit-profile-report') {
-      document.querySelector('[data-profile-report-modal]')?.close();
+      const dialog = document.querySelector('[data-profile-report-modal]');
+      const notice = dialog?.querySelector('[data-report-notice]');
+      try {
+        const report = await apiFetch('/api/reports', {
+          method: 'POST',
+          body: JSON.stringify({
+            userId: dialog?.dataset.userId || '',
+            reason: dialog?.querySelector('select')?.value || '',
+            details: ''
+          })
+        });
+        if (!report) return;
+        if (notice) notice.textContent = '';
+        dialog?.close();
+      } catch (error) {
+        if (notice) notice.textContent = error?.message || 'Something went wrong.';
+      }
       return;
     }
     if (name === 'edit-profile') {
@@ -1594,7 +1619,8 @@ const profileActions = new Set([
   'save-profile',
   'block-user',
   'create-post',
-  'profile-friend'
+  'profile-friend',
+  'remove-friend'
 ]);
 
 function showProfileError(element, error) {
@@ -1746,6 +1772,20 @@ async function saveProfile(element) {
   paintProfile();
 }
 
+async function removeFriend(userId) {
+  if (!userId || userId === Gather.state.currentUserId || !Gather.isFriend(userId)) return;
+  await apiFetch(`/api/friends/${encodeURIComponent(userId)}`, { method: 'DELETE' });
+  if (!Gather.api.token()) return;
+  Gather.state.friends = Gather.state.friends.filter(id => id !== userId);
+  Gather.state.outgoingRequests = Gather.state.outgoingRequests.filter(id => id !== userId);
+  if (viewedUserId() === userId) profileView.friends = profileView.friends.filter(id => id !== Gather.state.currentUserId);
+  else if (viewingOwnProfile()) profileView.friends = profileView.friends.filter(id => id !== userId);
+  paintFriendCounts();
+  paintFriendButton();
+  const connections = document.querySelector('[data-connections-modal]');
+  if (connections?.open) renderConnectionList();
+}
+
 async function runProfileAction(element, work) {
   if (element.dataset.pending === '1') return;
   element.dataset.pending = '1';
@@ -1775,6 +1815,7 @@ async function submitProfilePost() {
     if (!post) return;
     upsertPost(post);
     textInput.value = '';
+    textInput.dispatchEvent(new Event('input', { bubbles: true }));
     Gather.clearMediaInput(document.querySelector('#post-image'), '[data-post-media-preview]', '[data-post-media-notice]');
     render();
   } catch (error) {
@@ -1788,19 +1829,18 @@ async function handleProfileAction(name, element) {
     return;
   }
 
+  if (name === 'remove-friend') {
+    await removeFriend(element.dataset.userId);
+    return;
+  }
+
   if (name === 'profile-friend') {
     const userId = viewedUserId();
     if (!userId || userId === Gather.state.currentUserId) return;
     const relation = friendRelation(userId);
     if (relation === 'waiting') return;
     if (relation === 'remove') {
-      await apiFetch(`/api/friends/${encodeURIComponent(userId)}`, { method: 'DELETE' });
-      if (!Gather.api.token()) return;
-      Gather.state.friends = Gather.state.friends.filter(id => id !== userId);
-      Gather.state.outgoingRequests = Gather.state.outgoingRequests.filter(id => id !== userId);
-      profileView.friends = profileView.friends.filter(id => id !== Gather.state.currentUserId);
-      paintFriendCounts();
-      paintFriendButton();
+      await removeFriend(userId);
       return;
     }
     try {
@@ -1962,5 +2002,137 @@ document.addEventListener('visibilitychange', () => {
   refreshFriendship().catch(() => {});
 });
 
+function mentionCandidates(query) {
+  const needle = query.toLowerCase();
+  return Gather.state.users.filter(user => {
+    if (!user?.username || user.id === Gather.state.currentUserId || user.active === false) return false;
+    if (!needle) return true;
+    return user.username.toLowerCase().startsWith(needle) || (user.name || '').toLowerCase().includes(needle);
+  }).sort((a, b) => {
+    const rank = user => user.username.toLowerCase().startsWith(needle) ? 0 : 1;
+    return rank(a) - rank(b) || a.username.localeCompare(b.username);
+  }).slice(0, 6);
+}
+
+function linkPostMentions(root = document) {
+  root.querySelectorAll('.post-text, .comment-text').forEach(node => {
+    if (node.dataset.mentions === '1') return;
+    const text = node.textContent;
+    const pattern = /(^|\s)@([^\s@]{1,24})/g;
+    const parts = [];
+    let last = 0;
+    let linked = false;
+    let match;
+    while ((match = pattern.exec(text))) {
+      parts.push(Gather.escapeHTML(text.slice(last, match.index)));
+      const raw = match[2];
+      const clean = raw.replace(/[.,!?:;)]+$/g, '');
+      const user = Gather.state.users.find(item => item.username && item.username.toLowerCase() === clean.toLowerCase());
+      if (!user || user.id === 'someone') parts.push(Gather.escapeHTML(match[0]));
+      else {
+        linked = true;
+        const suffix = raw.slice(clean.length);
+        parts.push(`${Gather.escapeHTML(match[1])}<a class="mention" href="profile.html?user=${encodeURIComponent(user.id)}">@${Gather.escapeHTML(user.username)}</a>${Gather.escapeHTML(suffix)}`);
+      }
+      last = match.index + match[0].length;
+    }
+    if (!linked) return;
+    parts.push(Gather.escapeHTML(text.slice(last)));
+    node.innerHTML = parts.join('');
+    node.dataset.mentions = '1';
+  });
+}
+
+function bindMentionComposer(selector) {
+  const field = document.querySelector(selector);
+  if (!field || field.dataset.mentionsBound === '1') return;
+  field.dataset.mentionsBound = '1';
+  const menu = document.createElement('div');
+  menu.className = 'mention-menu';
+  menu.hidden = true;
+  field.insertAdjacentElement('afterend', menu);
+  let active = 0;
+
+  const close = () => {
+    menu.hidden = true;
+    menu.innerHTML = '';
+    active = 0;
+  };
+
+  const queryAtCaret = () => {
+    const before = field.value.slice(0, field.selectionStart);
+    const match = before.match(/(^|\s)@([^\s@]{0,24})$/);
+    return match ? match[2] : null;
+  };
+
+  const paint = () => {
+    const query = queryAtCaret();
+    if (query === null) {
+      close();
+      return;
+    }
+    const users = mentionCandidates(query);
+    if (!users.length) {
+      close();
+      return;
+    }
+    if (active >= users.length) active = 0;
+    menu.hidden = false;
+    menu.style.top = `${field.offsetTop + field.offsetHeight + 6}px`;
+    menu.innerHTML = users.map((user, index) => `<button type="button" class="mention-option${index === active ? ' is-active' : ''}" data-user-id="${Gather.escapeHTML(user.id)}">${Gather.avatar(user)}<span><strong>${Gather.escapeHTML(user.name)}</strong><span>@${Gather.escapeHTML(user.username)}</span></span></button>`).join('');
+  };
+
+  const choose = user => {
+    if (!user?.username) return;
+    const caret = field.selectionStart;
+    const before = field.value.slice(0, caret);
+    const after = field.value.slice(caret);
+    const updated = before.replace(/(^|\s)@([^\s@]{0,24})$/, (full, space) => `${space}@${user.username} `);
+    field.value = updated + after;
+    const cursor = updated.length;
+    field.setSelectionRange(cursor, cursor);
+    field.focus();
+    close();
+  };
+
+  field.addEventListener('input', paint);
+  field.addEventListener('click', paint);
+  field.addEventListener('keyup', event => {
+    if (['ArrowUp', 'ArrowDown', 'Enter', 'Tab', 'Escape'].includes(event.key)) return;
+    paint();
+  });
+  field.addEventListener('keydown', event => {
+    if (menu.hidden) return;
+    const users = [...menu.querySelectorAll('.mention-option')].map(button => Gather.state.users.find(user => user.id === button.dataset.userId)).filter(Boolean);
+    if (!users.length) return;
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      active = (active + 1) % users.length;
+      paint();
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      active = (active - 1 + users.length) % users.length;
+      paint();
+    } else if (event.key === 'Enter' || event.key === 'Tab') {
+      event.preventDefault();
+      choose(users[active]);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      close();
+    }
+  });
+  menu.addEventListener('mousedown', event => {
+    const button = event.target.closest('.mention-option');
+    if (!button) return;
+    event.preventDefault();
+    choose(Gather.state.users.find(user => user.id === button.dataset.userId));
+  });
+  document.addEventListener('click', event => {
+    if (event.target === field || menu.contains(event.target)) return;
+    close();
+  });
+}
+
+bindMentionComposer('#post-text');
 loadProfile();
 

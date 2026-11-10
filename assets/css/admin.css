@@ -2210,8 +2210,24 @@ select:focus-visible {
     font-weight: 700;
 }
 
-.member-state.is-suspended {
+.member-state.is-suspended,
+.member-state.is-banned {
     color: #b05f4e;
+}
+
+.admin-content-row:has(.admin-community-art) {
+    align-items: center;
+}
+
+.admin-community-art {
+    width: 42px;
+    height: 42px;
+    flex: 0 0 42px;
+    border-radius: 8px;
+    background-color: #e1d5f0;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
 }
 
 .admin-member-row .button {

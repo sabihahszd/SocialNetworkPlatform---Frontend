@@ -457,6 +457,12 @@ select:focus-visible {
     line-height: 1.65;
 }
 
+a.mention {
+    color: var(--forest, #806c9c);
+    font-weight: 700;
+    text-decoration: none;
+}
+
 .post-image {
     width: calc(100% - 52px);
     max-height: 380px;

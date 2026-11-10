@@ -94,32 +94,17 @@
                 </section>
                 <p class="auth-notice" data-admin-notice role="status"></p>
                 <div class="feed-tabs admin-tabs" role="tablist" aria-label="Admin sections">
-                    <button class="feed-tab active" data-admin-tab="overview">Overview</button>
-                    <button class="feed-tab" data-admin-tab="reports">Reports <span class="count-dot hidden"
+                    <button class="feed-tab active" data-admin-tab="reports">Reports <span class="count-dot hidden"
                             data-admin-report-badge>0</span></button>
                     <button class="feed-tab" data-admin-tab="members">Members</button>
                     <button class="feed-tab" data-admin-tab="communities">Communities</button>
                     <button class="feed-tab" data-admin-tab="posts">Posts</button>
                     <button class="feed-tab" data-admin-tab="brand">Brand</button>
                 </div>
-                <section class="admin-view" data-admin-view="overview">
+                <section class="admin-view" data-admin-view="reports">
                     <div class="admin-section-heading">
                         <div>
-                            <h2>Needs a closer look</h2>
-                        </div>
-                        <button class="text-button" data-action="admin-open-reports">View all reports →</button>
-                    </div>
-                    <div data-admin-overview-reports></div>
-                    <section class="admin-note"><span>✳</span>
-                        <div><strong>Lead with care.</strong>
-                            <p>Review context before taking action. Reports stay private and are only visible here.</p>
-                        </div>
-                    </section>
-                </section>
-                <section class="admin-view hidden" data-admin-view="reports">
-                    <div class="admin-section-heading">
-                        <div>
-                            <h2>Reported posts</h2>
+                            <h2>Reports</h2>
                         </div>
                         <span class="admin-view-count" data-admin-report-total>0 open</span>
                     </div>
@@ -150,15 +135,6 @@
                     </div>
                     <div data-admin-communities></div>
                     <p class="empty-hint" data-admin-empty-communities>No communities yet.</p>
-                    <form class="admin-editor" data-community-editor hidden>
-                        <h2>Edit community</h2>
-                        <label class="field-label">Name<input data-community-name maxlength="80" required></label>
-                        <label class="field-label">Description<textarea data-community-description maxlength="240"
-                                rows="3"></textarea></label>
-                        <label class="field-label">Emoji<input data-community-emoji maxlength="8"></label>
-                        <label class="field-label">Color<input data-community-color maxlength="20"></label>
-                        <button class="button button-primary" type="submit">Save community</button>
-                    </form>
                 </section>
                 <section class="admin-view hidden" data-admin-view="posts">
                     <div class="admin-section-heading">

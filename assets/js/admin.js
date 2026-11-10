@@ -449,7 +449,7 @@
     if (document.querySelector('[data-post-action-styles]')) return;
     const style = document.createElement('style');
     style.dataset.postActionStyles = '';
-    style.textContent = 'html.reduce-motion *{animation-duration:0s!important;transition:none!important;scroll-behavior:auto!important}input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea{border-radius:10px!important}.gather-action-dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);padding:0;border:1px solid var(--line,#e5e9e3);border-radius:10px;color:var(--ink,#23332e);background:var(--paper,#fff);box-shadow:0 12px 40px rgba(25,50,38,.15)}.gather-action-dialog::backdrop{background:rgba(28,45,37,.45);backdrop-filter:blur(3px)}.gather-action-content{position:relative;display:grid;gap:11px;padding:28px}.gather-action-content h2{margin:0;font-size:22px}.gather-action-content .modal-copy{margin:0 0 3px;color:var(--muted,#7a8780);font-size:12px}.gather-action-options{display:grid;gap:8px}.gather-action-options a{text-align:center}.gather-action-section-title{margin:4px 0 0;color:var(--muted,#7a8780);font-size:10px;font-weight:700;text-transform:uppercase}.gather-action-notice{min-height:16px;margin:0;color:var(--forest-deep,#58476f);font-size:11px}.gather-action-dialog .field-label{margin:0}.gather-action-dialog .field-label input{width:100%}.post-action.liked{color:var(--forest-deep,#58476f)}.post-action.reposted{color:var(--forest-deep,#58476f)}.post-action.bookmarked{color:var(--forest-deep,#58476f)}.comment-content{display:flex;align-items:flex-start;gap:8px}.chat-message-actions{display:flex;gap:10px;margin-top:4px}.chat-message-actions button{padding:0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;opacity:.76}.chat-message-actions button:hover{opacity:1;text-decoration:underline}.chat-message-actions{justify-content:flex-end}.inline-edit-form{display:grid;gap:6px}.inline-edit-form textarea{width:100%;padding:7px;border:1px solid var(--line,#e5e9e3);background:white;font:inherit;border-radius:10px!important}.inline-edit-form>div{display:flex;justify-content:flex-end;gap:9px}.inline-edit-form button{padding:2px 0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;font-weight:700}.banner-photo-preview{width:100%;height:82px;border-radius:8px;object-fit:cover;background:#efeaf5}.brand-mark img,.auth-logo-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.admin-brand-form{display:grid;gap:12px;max-width:560px}.admin-member-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.post-action i{font-size:16px;line-height:1;pointer-events:none}.post-card{cursor:pointer}.post-card .comment-list{display:none!important}[data-home-post-detail] .comment-list{display:grid!important}.comment-form{display:none!important}.comment-form.is-open{display:flex!important}.avatar[data-user-id]{cursor:pointer}.post-action.reposted{color:#806c9c}.post-action .action-count{min-width:1ch;font-size:12px;font-weight:600;line-height:1}.share-chat-list{display:grid;gap:4px}.share-chat{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:10px;text-align:left}.share-chat:hover{background:var(--leaf-pale,#f2ecf8)}.share-chat .avatar{width:36px;height:36px;font-size:13px}.share-chat-copy{display:grid;min-width:0;flex:1}.share-chat-copy span{color:var(--muted,#7a8780);font-size:11px}.share-send{margin-left:auto;padding:6px 12px;border:1px solid var(--line,#e6e1ee);border-radius:999px;color:var(--forest,#806c9c);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.share-send:hover{background:var(--leaf-pale,#f2ecf8)}.share-send:disabled{color:var(--muted,#7a8780);cursor:default}.share-platforms{display:flex;gap:10px;margin-top:8px}.share-platforms a,.share-platforms button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line,#e6e1ee);border-radius:50%;color:#806c9c;background:#fff;font-size:16px;text-decoration:none;cursor:pointer}.share-platforms a:hover,.share-platforms button:hover{background:var(--leaf-pale,#f2ecf8)}input[type="file"]::file-selector-button,input[type="file"]::-webkit-file-upload-button{margin-right:10px;padding:0 14px;height:32px;border:1px solid #e4dced;border-radius:20px;color:var(--forest,#806c9c);background:#fff;cursor:pointer;font:inherit;font-size:11px;font-weight:700;transition:background .16s ease}input[type="file"]::file-selector-button:hover,input[type="file"]::-webkit-file-upload-button:hover{background:#f4f0f8}.field-label input[type="file"],.auth-form .field-label input[type="file"],.register-form-wrap .auth-form .field-label input[type="file"]{min-height:32px;padding:0;border:0;background:transparent;font-size:12px;font-weight:400}.fa-regular.fa-house{width:1em;height:1em;font-size:1.22em;vertical-align:-.2em}.fa-regular.fa-house::before{content:"" !important;display:block;width:1em;height:1em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat}.file-placeholder-mark{position:relative;display:grid;place-items:center;min-height:112px;overflow:hidden;border-radius:10px;background:#e3e1e6 center/cover no-repeat;color:#8a8491;font-size:22px}.file-placeholder:has([data-avatar-file]) .file-placeholder-mark{width:112px}.file-placeholder-mark:hover{background-color:#d8d5db}.file-placeholder-mark i{pointer-events:none}.file-placeholder.has-file .file-placeholder-mark i{display:none}.file-placeholder-mark input[type="file"]{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}.file-placeholder.has-file+.photo-preview,.file-placeholder.has-file+.card-art-banner,.file-placeholder.has-file+.banner-photo-preview{display:none!important}.trends-section .trend-stamp{overflow:hidden;background-color:var(--stamp,#e1d5f0);background-position:center 48%;background-size:cover;background-repeat:no-repeat;color:transparent;font-size:0}';
+    style.textContent = 'html.reduce-motion *{animation-duration:0s!important;transition:none!important;scroll-behavior:auto!important}input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea{border-radius:10px!important}.gather-action-dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);padding:0;border:1px solid var(--line,#e5e9e3);border-radius:10px;color:var(--ink,#23332e);background:var(--paper,#fff);box-shadow:0 12px 40px rgba(25,50,38,.15)}.gather-action-dialog::backdrop{background:rgba(28,45,37,.45);backdrop-filter:blur(3px)}.gather-action-content{position:relative;display:grid;gap:11px;padding:28px}.gather-action-content h2{margin:0;font-size:22px}.gather-action-content .modal-copy{margin:0 0 3px;color:var(--muted,#7a8780);font-size:12px}.gather-action-options{display:grid;gap:8px}.gather-action-options a{text-align:center}.gather-action-section-title{margin:4px 0 0;color:var(--muted,#7a8780);font-size:10px;font-weight:700;text-transform:uppercase}.gather-action-notice{min-height:16px;margin:0;color:var(--forest-deep,#58476f);font-size:11px}.gather-action-dialog .field-label{margin:0}.gather-action-dialog .field-label input{width:100%}.post-action.liked{color:var(--forest-deep,#58476f)}.post-action.reposted{color:var(--forest-deep,#58476f)}.post-action.bookmarked{color:var(--forest-deep,#58476f)}.comment-content{display:flex;align-items:flex-start;gap:8px}.chat-message-actions{display:flex;gap:10px;margin-top:4px}.chat-message-actions button{padding:0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;opacity:.76}.chat-message-actions button:hover{opacity:1;text-decoration:underline}.chat-message-actions{justify-content:flex-end}.inline-edit-form{display:grid;gap:6px}.inline-edit-form textarea{width:100%;padding:7px;border:1px solid var(--line,#e5e9e3);background:white;font:inherit;border-radius:10px!important}.inline-edit-form>div{display:flex;justify-content:flex-end;gap:9px}.inline-edit-form button{padding:2px 0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;font-weight:700}.banner-photo-preview{width:100%;height:82px;border-radius:8px;object-fit:cover;background:#efeaf5}.brand-mark img,.auth-logo-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.admin-brand-form{display:grid;gap:12px;max-width:560px}.admin-member-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.post-action i{font-size:16px;line-height:1;pointer-events:none}.post-card{cursor:pointer}.post-card .comment-list{display:none!important}[data-home-post-detail] .comment-list{display:grid!important}.comment-form{display:none!important}.comment-form.is-open{display:flex!important}.avatar[data-user-id]{cursor:pointer}.post-action.reposted{color:#806c9c}.post-action .action-count{min-width:1ch;font-size:12px;font-weight:600;line-height:1}.share-chat-list{display:grid;gap:4px}.share-chat{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:10px;text-align:left}.share-chat .avatar{width:36px;height:36px;font-size:13px}.share-chat-copy{display:grid;min-width:0;flex:1}.share-chat-copy span{color:var(--muted,#7a8780);font-size:11px}.share-send{margin-left:auto;padding:6px 12px;border:1px solid var(--line,#e6e1ee);border-radius:999px;color:var(--forest,#806c9c);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.share-send:hover{background:var(--leaf-pale,#f2ecf8)}.share-send:disabled{color:var(--muted,#7a8780);cursor:default}.share-platforms{display:flex;gap:10px;margin-top:8px}.share-platforms a,.share-platforms button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line,#e6e1ee);border-radius:50%;color:#806c9c;background:#fff;font-size:16px;text-decoration:none;cursor:pointer}.share-platforms a:hover,.share-platforms button:hover{background:var(--leaf-pale,#f2ecf8)}input[type="file"]::file-selector-button,input[type="file"]::-webkit-file-upload-button{margin-right:10px;padding:0 14px;height:32px;border:1px solid #e4dced;border-radius:20px;color:var(--forest,#806c9c);background:#fff;cursor:pointer;font:inherit;font-size:11px;font-weight:700;transition:background .16s ease}input[type="file"]::file-selector-button:hover,input[type="file"]::-webkit-file-upload-button:hover{background:#f4f0f8}.field-label input[type="file"],.auth-form .field-label input[type="file"],.register-form-wrap .auth-form .field-label input[type="file"]{min-height:32px;padding:0;border:0;background:transparent;font-size:12px;font-weight:400}.fa-regular.fa-house{width:1em;height:1em;font-size:1.22em;vertical-align:-.2em}.fa-regular.fa-house::before{content:"" !important;display:block;width:1em;height:1em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat}.file-placeholder-mark{position:relative;display:grid;place-items:center;min-height:112px;overflow:hidden;border-radius:10px;background:#e3e1e6 center/cover no-repeat;color:#8a8491;font-size:22px}.file-placeholder:has([data-avatar-file]) .file-placeholder-mark{width:112px}.file-placeholder-mark:hover{background-color:#d8d5db}.file-placeholder-mark i{pointer-events:none}.file-placeholder.has-file .file-placeholder-mark i{display:none}.file-placeholder-mark input[type="file"]{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}.file-placeholder.has-file+.photo-preview,.file-placeholder.has-file+.card-art-banner,.file-placeholder.has-file+.banner-photo-preview{display:none!important}.trends-section .trend-stamp{overflow:hidden;background-color:var(--stamp,#e1d5f0);background-position:center 48%;background-size:cover;background-repeat:no-repeat;color:transparent;font-size:0}';
     document.head.append(style);
   }
 
@@ -1174,12 +1174,29 @@
 })();
 
 function renderReport(report, compact = false) {
-  const post = Gather.state.posts.find(item => item.id === report.postId);
-  const authorName = report.authorName || (post ? Gather.userById(post.authorId).name : '');
-  const authorUsername = report.authorUsername || (post ? Gather.userById(post.authorId).username : '');
+  const kind = report.kind || (report.communityId ? 'community' : report.userId ? 'user' : 'post');
   const reporter = report.reporterName || Gather.userById(report.reporterId).name;
-  const excerpt = report.postText || (post ? post.text : 'This post is no longer available.');
-  return `<article class="admin-report-row ${compact ? 'is-compact' : ''}"><div class="admin-report-main"><div class="admin-report-meta"><span class="report-tag">${Gather.escapeHTML(report.reason)}</span><time>${Gather.prettyTime(report.createdAt)}</time></div>${authorName ? `<p class="report-author">Post by <strong>${Gather.escapeHTML(authorName)}</strong> <span>@${Gather.escapeHTML(authorUsername)}</span></p>` : ''}<blockquote>${Gather.escapeHTML(excerpt)}</blockquote><p class="reporter-note">Reported by ${Gather.escapeHTML(reporter || 'a member')}</p></div><div class="admin-report-actions"><button class="button button-small button-secondary" type="button" data-action="dismiss-report" data-report-id="${Gather.escapeHTML(report.id)}">Dismiss</button><button class="button button-small button-primary" type="button" data-action="remove-reported-post" data-report-id="${Gather.escapeHTML(report.id)}" ${post || report.postText ? '' : 'disabled'}>Remove post</button></div></article>`;
+  let subject = '';
+  let excerpt = '';
+  let actionLabel = 'Remove post';
+  let disabled = '';
+  if (kind === 'user') {
+    subject = `<p class="report-author">Account <strong>${Gather.escapeHTML(report.reportedName || 'Member')}</strong>${report.username ? ` <span>@${Gather.escapeHTML(report.username)}</span>` : ''}</p>`;
+    excerpt = 'This report is about a member.';
+    actionLabel = 'Ban user';
+  } else if (kind === 'community') {
+    subject = `<p class="report-author">Community <strong>${Gather.escapeHTML(report.communityName || 'Community')}</strong></p>`;
+    excerpt = 'This report is about a community.';
+    actionLabel = 'Remove community';
+  } else {
+    const post = Gather.state.posts.find(item => item.id === report.postId);
+    const authorName = report.authorName || (post ? Gather.userById(post.authorId).name : '');
+    const authorUsername = report.authorUsername || (post ? Gather.userById(post.authorId).username : '');
+    excerpt = report.postText || (post ? post.text : 'This post is no longer available.');
+    if (authorName) subject = `<p class="report-author">Post by <strong>${Gather.escapeHTML(authorName)}</strong> <span>@${Gather.escapeHTML(authorUsername)}</span></p>`;
+    if (!(post || report.postText)) disabled = 'disabled';
+  }
+  return `<article class="admin-report-row ${compact ? 'is-compact' : ''}"><div class="admin-report-main"><div class="admin-report-meta"><span class="report-tag">${Gather.escapeHTML(report.reason)}</span><time>${Gather.prettyTime(report.createdAt)}</time></div>${subject}<blockquote>${Gather.escapeHTML(excerpt)}</blockquote><p class="reporter-note">Reported by ${Gather.escapeHTML(reporter || 'a member')}</p></div><div class="admin-report-actions"><button class="button button-small button-secondary" type="button" data-action="dismiss-report" data-report-id="${Gather.escapeHTML(report.id)}">Dismiss</button><button class="button button-small button-primary" type="button" data-action="remove-reported-post" data-report-id="${Gather.escapeHTML(report.id)}" ${disabled}>${actionLabel}</button></div></article>`;
 }
 
 function renderMembers(query = '') {
@@ -1188,11 +1205,16 @@ function renderMembers(query = '') {
     container.innerHTML = matching.map(user => {
       const roleLabel = user.role === 'superadmin' ? 'Superadmin' : user.role === 'admin' ? 'Admin' : 'Member';
       const locked = user.role === 'superadmin' || user.id === Gather.state.currentUserId || (user.role === 'admin' && !Gather.isSuperAdmin());
+      const banned = user.banned === true;
+      const suspended = !banned && user.active === false;
       const roleButton = Gather.isSuperAdmin() && user.role !== 'superadmin' && user.id !== Gather.state.currentUserId
         ? `<button class="button button-small button-secondary" type="button" data-action="set-member-role" data-user-id="${Gather.escapeHTML(user.id)}" data-role="${user.role === 'admin' ? 'member' : 'admin'}">${user.role === 'admin' ? 'Remove admin' : 'Make admin'}</button>`
         : '';
-      const removeButton = locked ? '' : `<button class="button button-small button-following" type="button" data-action="remove-member" data-user-id="${Gather.escapeHTML(user.id)}">Remove</button>`;
-      return `<article class="admin-member-row">${Gather.avatar(user)}<div class="admin-member-info"><strong>${Gather.escapeHTML(user.name)}</strong><span>@${Gather.escapeHTML(user.username)}</span></div><span class="admin-role ${user.role === 'member' ? '' : 'is-admin'}">${roleLabel}</span><span class="member-state ${user.active === false ? 'is-suspended' : ''}">${user.active === false ? 'Suspended' : 'Active'}</span><div class="admin-member-actions">${roleButton}<button class="button button-small ${user.active === false ? 'button-secondary' : 'button-following'}" type="button" data-action="toggle-member-status" data-user-id="${Gather.escapeHTML(user.id)}" ${locked ? 'disabled title="This account cannot be suspended here"' : ''}>${user.active === false ? 'Restore' : 'Suspend'}</button>${removeButton}</div></article>`;
+      const suspendButton = banned ? '' : `<button class="button button-small ${suspended ? 'button-secondary' : 'button-following'}" type="button" data-action="toggle-member-status" data-user-id="${Gather.escapeHTML(user.id)}" ${locked ? 'disabled title="This account cannot be suspended here"' : ''}>${suspended ? 'Restore' : 'Suspend'}</button>`;
+      const banButton = locked || banned ? '' : `<button class="button button-small button-following" type="button" data-action="remove-member" data-user-id="${Gather.escapeHTML(user.id)}">Ban</button>`;
+      const stateLabel = banned ? 'Banned' : suspended ? 'Suspended' : 'Active';
+      const stateClass = banned ? 'is-banned' : suspended ? 'is-suspended' : '';
+      return `<article class="admin-member-row">${Gather.avatar(user)}<div class="admin-member-info"><strong>${Gather.escapeHTML(user.name)}</strong><span>@${Gather.escapeHTML(user.username)}</span></div><span class="admin-role ${user.role === 'member' ? '' : 'is-admin'}">${roleLabel}</span><span class="member-state ${stateClass}">${stateLabel}</span><div class="admin-member-actions">${roleButton}${suspendButton}${banButton}</div></article>`;
     }).join('');
     document.querySelectorAll('[data-admin-empty-members]').forEach(empty => {
       empty.textContent = query.trim() ? 'No members match that search.' : 'No members yet.';
@@ -1204,7 +1226,12 @@ function renderMembers(query = '') {
 function renderCommunities(query = '') {
   document.querySelectorAll('[data-admin-communities]').forEach(container => {
     const matching = Gather.state.communities.filter(community => `${community.name} ${community.description || ''}`.toLowerCase().includes(query.trim().toLowerCase()));
-    container.innerHTML = matching.map(community => `<article class="admin-content-row"><span class="trend-stamp" style="--stamp:${Gather.escapeHTML(community.color || '#e1d5f0')}">${Gather.escapeHTML(community.emoji || '✳')}</span><div class="admin-member-info"><strong>${Gather.escapeHTML(community.name)}</strong><span>${Gather.memberCount(community.members)} members</span></div><div class="admin-member-actions"><button class="button button-small button-secondary" type="button" data-action="edit-community" data-community-id="${Gather.escapeHTML(community.id)}">Edit</button><button class="button button-small button-following" type="button" data-action="remove-community" data-community-id="${Gather.escapeHTML(community.id)}">Remove</button></div></article>`).join('');
+    container.innerHTML = matching.map(community => {
+      const art = community.banner
+        ? `background-image:url('${Gather.escapeHTML(community.banner)}')`
+        : `background-color:${Gather.escapeHTML(community.color || '#e1d5f0')}`;
+      return `<article class="admin-content-row"><span class="admin-community-art" style="${art}" aria-hidden="true"></span><div class="admin-member-info"><strong>${Gather.escapeHTML(community.name)}</strong><span>${Gather.memberCount(community.members)} members</span></div><div class="admin-member-actions"><button class="button button-small button-following" type="button" data-action="remove-community" data-community-id="${Gather.escapeHTML(community.id)}">Remove</button></div></article>`;
+    }).join('');
     document.querySelectorAll('[data-admin-empty-communities]').forEach(empty => empty.classList.toggle('hidden', matching.length > 0));
   });
 }
@@ -1257,9 +1284,6 @@ function render() {
     node.classList.toggle('hidden', !openReports.length);
   });
   document.querySelectorAll('[data-admin-report-total]').forEach(node => { node.textContent = `${openReports.length} open`; });
-  document.querySelectorAll('[data-admin-overview-reports]').forEach(container => {
-    container.innerHTML = openReports.slice(0, 3).map(report => renderReport(report, true)).join('') || '<p class="empty-hint">The queue is clear.</p>';
-  });
   document.querySelectorAll('[data-admin-reports]').forEach(container => {
     container.innerHTML = openReports.map(report => renderReport(report)).join('');
   });
@@ -1268,18 +1292,6 @@ function render() {
   renderCommunities(document.querySelector('[data-admin-community-search]')?.value || '');
   renderPosts(document.querySelector('[data-admin-post-search]')?.value || '');
   fillBrand(document.querySelector('[data-brand-form]'));
-}
-
-function showCommunityEditor(id) {
-  const community = Gather.state.communities.find(item => item.id === id);
-  const form = document.querySelector('[data-community-editor]');
-  if (!community || !form) return;
-  form.hidden = false;
-  form.dataset.communityId = community.id;
-  form.querySelector('[data-community-name]').value = community.name || '';
-  form.querySelector('[data-community-description]').value = community.description || '';
-  form.querySelector('[data-community-emoji]').value = community.emoji || '';
-  form.querySelector('[data-community-color]').value = community.color || '#e1d5f0';
 }
 
 Gather.start({
@@ -1321,13 +1333,23 @@ Gather.start({
     if (name === 'remove-reported-post') {
       const report = Gather.state.reports.find(item => item.id === element.dataset.reportId);
       if (!report) return;
-      Gather.state.posts = Gather.state.posts.filter(post => post.id !== report.postId);
-      Gather.state.reports.forEach(item => { if (item.postId === report.postId && item.status === 'open') item.status = 'removed'; });
+      const kind = report.kind || (report.communityId ? 'community' : report.userId ? 'user' : 'post');
+      if (kind === 'user') {
+        const user = Gather.state.users.find(item => item.id === report.userId);
+        if (user) { user.banned = true; user.active = false; }
+        Gather.state.reports.forEach(item => { if (item.userId === report.userId && item.status === 'open') item.status = 'removed'; });
+      } else if (kind === 'community') {
+        Gather.state.communities = Gather.state.communities.filter(community => community.id !== report.communityId);
+        Gather.state.reports.forEach(item => { if (item.communityId === report.communityId && item.status === 'open') item.status = 'removed'; });
+      } else {
+        Gather.state.posts = Gather.state.posts.filter(post => post.id !== report.postId);
+        Gather.state.reports.forEach(item => { if (item.postId === report.postId && item.status === 'open') item.status = 'removed'; });
+      }
       render();
     }
     if (name === 'toggle-member-status') {
       const user = Gather.state.users.find(item => item.id === element.dataset.userId);
-      if (user) user.active = user.active === false;
+      if (user && user.banned !== true) user.active = user.active === false;
       render();
     }
     if (name === 'set-member-role') {
@@ -1336,10 +1358,10 @@ Gather.start({
       render();
     }
     if (name === 'remove-member') {
-      Gather.state.users = Gather.state.users.filter(user => user.id !== element.dataset.userId);
+      const user = Gather.state.users.find(item => item.id === element.dataset.userId);
+      if (user) { user.banned = true; user.active = false; }
       render();
     }
-    if (name === 'edit-community') showCommunityEditor(element.dataset.communityId);
     if (name === 'remove-community') {
       Gather.state.communities = Gather.state.communities.filter(community => community.id !== element.dataset.communityId);
       render();
@@ -1372,16 +1394,6 @@ Gather.start({
       if (notice) notice.textContent = 'Brand updated on this page.';
       return;
     }
-    const editor = event.target.closest('[data-community-editor]');
-    if (!editor) return;
-    event.preventDefault();
-    const community = Gather.state.communities.find(item => item.id === editor.dataset.communityId);
-    if (!community) return;
-    community.name = editor.querySelector('[data-community-name]').value.trim() || community.name;
-    community.description = editor.querySelector('[data-community-description]').value.trim();
-    community.emoji = editor.querySelector('[data-community-emoji]').value.trim() || community.emoji;
-    community.color = editor.querySelector('[data-community-color]').value.trim() || community.color;
-    render();
   }
 });
 
@@ -1567,23 +1579,7 @@ async function saveBrand(form) {
   if (notice) notice.textContent = 'Brand saved.';
 }
 
-async function saveCommunity(form) {
-  const id = form.dataset.communityId;
-  if (!id) return;
-  const community = await apiFetch(`/api/admin/communities/${encodeURIComponent(id)}`, {
-    method: 'PUT',
-    body: JSON.stringify({
-      name: form.querySelector('[data-community-name]')?.value.trim() || '',
-      description: form.querySelector('[data-community-description]')?.value.trim() || '',
-      emoji: form.querySelector('[data-community-emoji]')?.value.trim() || '',
-      color: form.querySelector('[data-community-color]')?.value.trim() || ''
-    })
-  });
-  if (!community) return;
-  upsertCommunity(community);
-  render();
-  showAdminError('');
-}
+const roleChanges = new Set();
 
 async function handleAdminAction(name, element) {
   if (name === 'dismiss-report') {
@@ -1600,7 +1596,15 @@ async function handleAdminAction(name, element) {
     const current = Gather.state.reports.find(item => item.id === element.dataset.reportId);
     const report = await apiFetch(`/api/admin/reports/${encodeURIComponent(element.dataset.reportId)}/remove`, { method: 'POST' });
     if (!report) return;
-    if (current?.postId) {
+    const kind = current?.kind || (current?.communityId ? 'community' : current?.userId ? 'user' : 'post');
+    if (kind === 'user' && current?.userId) {
+      const user = Gather.state.users.find(item => item.id === current.userId);
+      if (user) { user.banned = true; user.active = false; }
+      Gather.state.reports.forEach(item => { if (item.userId === current.userId && item.status === 'open') item.status = 'removed'; });
+    } else if (kind === 'community' && current?.communityId) {
+      Gather.state.communities = Gather.state.communities.filter(community => community.id !== current.communityId);
+      Gather.state.reports.forEach(item => { if (item.communityId === current.communityId && item.status === 'open') item.status = 'removed'; });
+    } else if (current?.postId) {
       Gather.state.posts = Gather.state.posts.filter(post => post.id !== current.postId);
       closeReportsForPost(current.postId, 'removed');
     }
@@ -1620,20 +1624,34 @@ async function handleAdminAction(name, element) {
   }
 
   if (name === 'set-member-role') {
-    const user = await apiFetch(`/api/admin/members/${encodeURIComponent(element.dataset.userId)}/role`, {
-      method: 'PUT',
-      body: JSON.stringify({ role: element.dataset.role === 'admin' ? 'admin' : 'member' })
-    });
-    if (!user) return;
-    rememberUser(user);
+    const userId = element.dataset.userId;
+    if (!userId || roleChanges.has(userId)) return;
+    const nextRole = element.dataset.role === 'admin' ? 'admin' : 'member';
+    const user = Gather.state.users.find(item => item.id === userId);
+    const previousRole = user?.role;
+    if (user) user.role = nextRole;
+    roleChanges.add(userId);
     render();
+    try {
+      const updated = await apiFetch(`/api/admin/members/${encodeURIComponent(userId)}/role`, {
+        method: 'PUT',
+        body: JSON.stringify({ role: nextRole })
+      });
+      if (updated) rememberUser(updated);
+      render();
+    } catch (error) {
+      if (user) user.role = previousRole;
+      render();
+      throw error;
+    } finally {
+      roleChanges.delete(userId);
+    }
     return;
   }
 
   if (name === 'remove-member') {
-    const userId = element.dataset.userId;
-    await apiFetch(`/api/admin/members/${encodeURIComponent(userId)}`, { method: 'DELETE' });
-    Gather.state.users = Gather.state.users.filter(user => user.id !== userId);
+    const user = await apiFetch(`/api/admin/members/${encodeURIComponent(element.dataset.userId)}`, { method: 'DELETE' });
+    if (user) rememberUser(user);
     render();
     return;
   }
@@ -1642,8 +1660,6 @@ async function handleAdminAction(name, element) {
     const communityId = element.dataset.communityId;
     await apiFetch(`/api/admin/communities/${encodeURIComponent(communityId)}`, { method: 'DELETE' });
     Gather.state.communities = Gather.state.communities.filter(community => community.id !== communityId);
-    const editor = document.querySelector('[data-community-editor]');
-    if (editor?.dataset.communityId === communityId) editor.hidden = true;
     render();
     return;
   }
@@ -1673,13 +1689,13 @@ document.addEventListener('click', event => {
 document.addEventListener('submit', event => {
   const form = event.target;
   if (!(form instanceof HTMLFormElement)) return;
-  if (!form.matches('[data-brand-form], [data-community-editor]')) return;
+  if (!form.matches('[data-brand-form]')) return;
   event.preventDefault();
   event.stopImmediatePropagation();
   const button = form.querySelector('[type="submit"]');
   if (button?.disabled) return;
   if (button) button.disabled = true;
-  const save = form.matches('[data-brand-form]') ? saveBrand(form) : saveCommunity(form);
+  const save = saveBrand(form);
   save
     .catch(error => {
       const notice = form.querySelector('[data-brand-notice]');

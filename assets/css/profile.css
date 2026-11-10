@@ -522,8 +522,66 @@ select:focus-visible {
 }
 
 .composer-main {
+    position: relative;
     min-width: 0;
     flex: 1;
+}
+
+.mention-menu {
+    position: absolute;
+    z-index: 8;
+    left: 0;
+    right: 0;
+    display: grid;
+    gap: 2px;
+    max-height: 240px;
+    overflow: auto;
+    padding: 6px;
+    border: 1px solid var(--line, #e5e9e3);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 12px 32px rgba(25, 50, 38, .14);
+}
+
+.mention-menu[hidden] {
+    display: none;
+}
+
+.mention-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.mention-option.is-active,
+.mention-option:hover {
+    background: var(--leaf-pale, #f2ecf8);
+}
+
+.mention-option .avatar {
+    width: 28px;
+    height: 28px;
+    flex: none;
+    font-size: 12px;
+}
+
+.mention-option > span {
+    display: grid;
+    min-width: 0;
+}
+
+.mention-option > span span {
+    color: var(--muted, #7a8780);
+    font-size: 11px;
 }
 
 .composer-identity {
@@ -771,6 +829,12 @@ select:focus-visible {
     overflow-wrap: anywhere;
     font-size: 13px;
     line-height: 1.65;
+}
+
+a.mention {
+    color: var(--forest, #806c9c);
+    font-weight: 700;
+    text-decoration: none;
 }
 
 .post-image {
@@ -1695,6 +1759,10 @@ select:focus-visible {
 .friend-row>div:nth-child(2) {
     min-width: 0;
     flex: 1;
+}
+
+.friend-row-remove {
+    flex: 0 0 auto;
 }
 
 .friend-row-actions {

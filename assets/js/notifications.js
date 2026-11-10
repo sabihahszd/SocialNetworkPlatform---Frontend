@@ -449,7 +449,7 @@
     if (document.querySelector('[data-post-action-styles]')) return;
     const style = document.createElement('style');
     style.dataset.postActionStyles = '';
-    style.textContent = 'html.reduce-motion *{animation-duration:0s!important;transition:none!important;scroll-behavior:auto!important}input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea{border-radius:10px!important}.gather-action-dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);padding:0;border:1px solid var(--line,#e5e9e3);border-radius:10px;color:var(--ink,#23332e);background:var(--paper,#fff);box-shadow:0 12px 40px rgba(25,50,38,.15)}.gather-action-dialog::backdrop{background:rgba(28,45,37,.45);backdrop-filter:blur(3px)}.gather-action-content{position:relative;display:grid;gap:11px;padding:28px}.gather-action-content h2{margin:0;font-size:22px}.gather-action-content .modal-copy{margin:0 0 3px;color:var(--muted,#7a8780);font-size:12px}.gather-action-options{display:grid;gap:8px}.gather-action-options a{text-align:center}.gather-action-section-title{margin:4px 0 0;color:var(--muted,#7a8780);font-size:10px;font-weight:700;text-transform:uppercase}.gather-action-notice{min-height:16px;margin:0;color:var(--forest-deep,#58476f);font-size:11px}.gather-action-dialog .field-label{margin:0}.gather-action-dialog .field-label input{width:100%}.post-action.liked{color:var(--forest-deep,#58476f)}.post-action.reposted{color:var(--forest-deep,#58476f)}.post-action.bookmarked{color:var(--forest-deep,#58476f)}.comment-content{display:flex;align-items:flex-start;gap:8px}.chat-message-actions{display:flex;gap:10px;margin-top:4px}.chat-message-actions button{padding:0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;opacity:.76}.chat-message-actions button:hover{opacity:1;text-decoration:underline}.chat-message-actions{justify-content:flex-end}.inline-edit-form{display:grid;gap:6px}.inline-edit-form textarea{width:100%;padding:7px;border:1px solid var(--line,#e5e9e3);background:white;font:inherit;border-radius:10px!important}.inline-edit-form>div{display:flex;justify-content:flex-end;gap:9px}.inline-edit-form button{padding:2px 0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;font-weight:700}.banner-photo-preview{width:100%;height:82px;border-radius:8px;object-fit:cover;background:#efeaf5}.brand-mark img,.auth-logo-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.admin-brand-form{display:grid;gap:12px;max-width:560px}.admin-member-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.post-action i{font-size:16px;line-height:1;pointer-events:none}.post-card{cursor:pointer}.post-card .comment-list{display:none!important}[data-home-post-detail] .comment-list{display:grid!important}.comment-form{display:none!important}.comment-form.is-open{display:flex!important}.avatar[data-user-id]{cursor:pointer}.post-action.reposted{color:#806c9c}.post-action .action-count{min-width:1ch;font-size:12px;font-weight:600;line-height:1}.share-chat-list{display:grid;gap:4px}.share-chat{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:10px;text-align:left}.share-chat:hover{background:var(--leaf-pale,#f2ecf8)}.share-chat .avatar{width:36px;height:36px;font-size:13px}.share-chat-copy{display:grid;min-width:0;flex:1}.share-chat-copy span{color:var(--muted,#7a8780);font-size:11px}.share-send{margin-left:auto;padding:6px 12px;border:1px solid var(--line,#e6e1ee);border-radius:999px;color:var(--forest,#806c9c);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.share-send:hover{background:var(--leaf-pale,#f2ecf8)}.share-send:disabled{color:var(--muted,#7a8780);cursor:default}.share-platforms{display:flex;gap:10px;margin-top:8px}.share-platforms a,.share-platforms button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line,#e6e1ee);border-radius:50%;color:#806c9c;background:#fff;font-size:16px;text-decoration:none;cursor:pointer}.share-platforms a:hover,.share-platforms button:hover{background:var(--leaf-pale,#f2ecf8)}input[type="file"]::file-selector-button,input[type="file"]::-webkit-file-upload-button{margin-right:10px;padding:0 14px;height:32px;border:1px solid #e4dced;border-radius:20px;color:var(--forest,#806c9c);background:#fff;cursor:pointer;font:inherit;font-size:11px;font-weight:700;transition:background .16s ease}input[type="file"]::file-selector-button:hover,input[type="file"]::-webkit-file-upload-button:hover{background:#f4f0f8}.field-label input[type="file"],.auth-form .field-label input[type="file"],.register-form-wrap .auth-form .field-label input[type="file"]{min-height:32px;padding:0;border:0;background:transparent;font-size:12px;font-weight:400}.fa-regular.fa-house{width:1em;height:1em;font-size:1.22em;vertical-align:-.2em}.fa-regular.fa-house::before{content:"" !important;display:block;width:1em;height:1em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat}.file-placeholder-mark{position:relative;display:grid;place-items:center;min-height:112px;overflow:hidden;border-radius:10px;background:#e3e1e6 center/cover no-repeat;color:#8a8491;font-size:22px}.file-placeholder:has([data-avatar-file]) .file-placeholder-mark{width:112px}.file-placeholder-mark:hover{background-color:#d8d5db}.file-placeholder-mark i{pointer-events:none}.file-placeholder.has-file .file-placeholder-mark i{display:none}.file-placeholder-mark input[type="file"]{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}.file-placeholder.has-file+.photo-preview,.file-placeholder.has-file+.card-art-banner,.file-placeholder.has-file+.banner-photo-preview{display:none!important}.trends-section .trend-stamp{overflow:hidden;background-color:var(--stamp,#e1d5f0);background-position:center 48%;background-size:cover;background-repeat:no-repeat;color:transparent;font-size:0}';
+    style.textContent = 'html.reduce-motion *{animation-duration:0s!important;transition:none!important;scroll-behavior:auto!important}input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),select,textarea{border-radius:10px!important}.gather-action-dialog{width:min(440px,calc(100% - 32px));max-height:calc(100% - 32px);padding:0;border:1px solid var(--line,#e5e9e3);border-radius:10px;color:var(--ink,#23332e);background:var(--paper,#fff);box-shadow:0 12px 40px rgba(25,50,38,.15)}.gather-action-dialog::backdrop{background:rgba(28,45,37,.45);backdrop-filter:blur(3px)}.gather-action-content{position:relative;display:grid;gap:11px;padding:28px}.gather-action-content h2{margin:0;font-size:22px}.gather-action-content .modal-copy{margin:0 0 3px;color:var(--muted,#7a8780);font-size:12px}.gather-action-options{display:grid;gap:8px}.gather-action-options a{text-align:center}.gather-action-section-title{margin:4px 0 0;color:var(--muted,#7a8780);font-size:10px;font-weight:700;text-transform:uppercase}.gather-action-notice{min-height:16px;margin:0;color:var(--forest-deep,#58476f);font-size:11px}.gather-action-dialog .field-label{margin:0}.gather-action-dialog .field-label input{width:100%}.post-action.liked{color:var(--forest-deep,#58476f)}.post-action.reposted{color:var(--forest-deep,#58476f)}.post-action.bookmarked{color:var(--forest-deep,#58476f)}.comment-content{display:flex;align-items:flex-start;gap:8px}.chat-message-actions{display:flex;gap:10px;margin-top:4px}.chat-message-actions button{padding:0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;opacity:.76}.chat-message-actions button:hover{opacity:1;text-decoration:underline}.chat-message-actions{justify-content:flex-end}.inline-edit-form{display:grid;gap:6px}.inline-edit-form textarea{width:100%;padding:7px;border:1px solid var(--line,#e5e9e3);background:white;font:inherit;border-radius:10px!important}.inline-edit-form>div{display:flex;justify-content:flex-end;gap:9px}.inline-edit-form button{padding:2px 0;border:0;color:inherit;background:transparent;cursor:pointer;font-size:10px;font-weight:700}.banner-photo-preview{width:100%;height:82px;border-radius:8px;object-fit:cover;background:#efeaf5}.brand-mark img,.auth-logo-mark img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}.admin-brand-form{display:grid;gap:12px;max-width:560px}.admin-member-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}.post-action i{font-size:16px;line-height:1;pointer-events:none}.post-card{cursor:pointer}.post-card .comment-list{display:none!important}[data-home-post-detail] .comment-list{display:grid!important}.comment-form{display:none!important}.comment-form.is-open{display:flex!important}.avatar[data-user-id]{cursor:pointer}.post-action.reposted{color:#806c9c}.post-action .action-count{min-width:1ch;font-size:12px;font-weight:600;line-height:1}.share-chat-list{display:grid;gap:4px}.share-chat{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border-radius:10px;text-align:left}.share-chat .avatar{width:36px;height:36px;font-size:13px}.share-chat-copy{display:grid;min-width:0;flex:1}.share-chat-copy span{color:var(--muted,#7a8780);font-size:11px}.share-send{margin-left:auto;padding:6px 12px;border:1px solid var(--line,#e6e1ee);border-radius:999px;color:var(--forest,#806c9c);background:#fff;font:inherit;font-size:12px;font-weight:700;cursor:pointer}.share-send:hover{background:var(--leaf-pale,#f2ecf8)}.share-send:disabled{color:var(--muted,#7a8780);cursor:default}.share-platforms{display:flex;gap:10px;margin-top:8px}.share-platforms a,.share-platforms button{width:42px;height:42px;display:grid;place-items:center;border:1px solid var(--line,#e6e1ee);border-radius:50%;color:#806c9c;background:#fff;font-size:16px;text-decoration:none;cursor:pointer}.share-platforms a:hover,.share-platforms button:hover{background:var(--leaf-pale,#f2ecf8)}input[type="file"]::file-selector-button,input[type="file"]::-webkit-file-upload-button{margin-right:10px;padding:0 14px;height:32px;border:1px solid #e4dced;border-radius:20px;color:var(--forest,#806c9c);background:#fff;cursor:pointer;font:inherit;font-size:11px;font-weight:700;transition:background .16s ease}input[type="file"]::file-selector-button:hover,input[type="file"]::-webkit-file-upload-button:hover{background:#f4f0f8}.field-label input[type="file"],.auth-form .field-label input[type="file"],.register-form-wrap .auth-form .field-label input[type="file"]{min-height:32px;padding:0;border:0;background:transparent;font-size:12px;font-weight:400}.fa-regular.fa-house{width:1em;height:1em;font-size:1.22em;vertical-align:-.2em}.fa-regular.fa-house::before{content:"" !important;display:block;width:1em;height:1em;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27%3E%3Cpath fill=%27white%27 d=%27M12 1.6 2.2 10.2h2.2V21.4h4.8V15.2h5.6v6.2h4.8V10.2h2.2L12 1.6zM7.6 11.4 12 7.6l4.8 3.8v6.4H7.6V11.4z%27/%3E%3C/svg%3E") center/contain no-repeat}.file-placeholder-mark{position:relative;display:grid;place-items:center;min-height:112px;overflow:hidden;border-radius:10px;background:#e3e1e6 center/cover no-repeat;color:#8a8491;font-size:22px}.file-placeholder:has([data-avatar-file]) .file-placeholder-mark{width:112px}.file-placeholder-mark:hover{background-color:#d8d5db}.file-placeholder-mark i{pointer-events:none}.file-placeholder.has-file .file-placeholder-mark i{display:none}.file-placeholder-mark input[type="file"]{position:absolute;inset:0;z-index:1;width:100%;height:100%;min-height:0;margin:0;padding:0;border:0;background:transparent;opacity:0;cursor:pointer}.file-placeholder.has-file+.photo-preview,.file-placeholder.has-file+.card-art-banner,.file-placeholder.has-file+.banner-photo-preview{display:none!important}.trends-section .trend-stamp{overflow:hidden;background-color:var(--stamp,#e1d5f0);background-position:center 48%;background-size:cover;background-repeat:no-repeat;color:transparent;font-size:0}';
     document.head.append(style);
   }
 
@@ -917,7 +917,8 @@
       }
       case 'accept-request':
       case 'decline-request': {
-        const actions = element.closest('.friend-row-actions, .notification-actions');
+        if (element.closest('.notification-actions')) return true;
+        const actions = element.closest('.friend-row-actions');
         if (actions) {
           const status = document.createElement('span');
           status.className = 'request-status';
@@ -1174,6 +1175,21 @@
 
 let notificationFilter = 'all';
 
+function requestActions(item, pending) {
+  if (item.type !== 'friend-request') return '';
+  const id = Gather.escapeHTML(item.id);
+  if (pending) {
+    return `<div class="notification-actions"><button class="button button-primary" type="button" data-action="accept-request" data-notification-id="${id}">Accept</button><button class="button button-secondary" type="button" data-action="decline-request" data-notification-id="${id}">Decline</button></div>`;
+  }
+  if (item.status === 'accepted') {
+    return `<div class="notification-actions"><button class="button button-primary" type="button" disabled>Accepted</button></div>`;
+  }
+  if (item.status === 'declined') {
+    return `<div class="notification-actions"><button class="button button-secondary" type="button" disabled>Declined</button></div>`;
+  }
+  return '';
+}
+
 function render() {
   document.querySelectorAll('[data-notification-list]').forEach(container => {
     let notifications = Gather.state.notifications.slice().sort(Gather.byNewest);
@@ -1192,8 +1208,13 @@ function render() {
       };
       const label = labels[item.type] || 'sent you a notification.';
       const detail = item.detail ? `<span class="notification-detail">"${Gather.escapeHTML(item.detail)}"</span>` : '';
-      const actions = pending ? `<div class="notification-actions"><button class="button button-primary" data-action="accept-request" data-notification-id="${Gather.escapeHTML(item.id)}">Accept</button><button class="button button-secondary" data-action="decline-request" data-notification-id="${Gather.escapeHTML(item.id)}">Decline</button></div>` : '';
-      return `<article class="notification-row ${item.read ? '' : 'unread'}" data-type="${Gather.escapeHTML(item.type)}" data-notification-id="${Gather.escapeHTML(item.id)}" data-action="read-notification" role="button" tabindex="0"><div class="notification-avatar">${Gather.avatar(actor)}</div><div class="notification-content"><strong>${Gather.escapeHTML(actor.name)}</strong> ${label}${detail}${actions}</div><time class="notification-time">${Gather.prettyTime(item.createdAt)}</time></article>`;
+      const actions = requestActions(item, pending);
+      const opensPost = (item.type === 'like' || item.type === 'repost') && item.postId;
+      const postUrl = opensPost ? `home.html?post=${encodeURIComponent(item.postId)}` : '';
+      const tag = postUrl ? 'a' : 'article';
+      const href = postUrl ? ` href="${Gather.escapeHTML(postUrl)}"` : '';
+      const postId = opensPost ? ` data-post-id="${Gather.escapeHTML(item.postId)}"` : '';
+      return `<${tag} class="notification-row ${item.read ? '' : 'unread'}" data-type="${Gather.escapeHTML(item.type)}" data-notification-id="${Gather.escapeHTML(item.id)}"${postId}${href} data-action="read-notification" role="button" tabindex="0"><div class="notification-avatar">${Gather.avatar(actor)}</div><div class="notification-content"><strong>${Gather.escapeHTML(actor.name)}</strong> ${label}${detail}${actions}</div><time class="notification-time">${Gather.prettyTime(item.createdAt)}</time></${tag}>`;
     }).join('');
     document.querySelector('[data-empty-notifications]')?.classList.toggle('hidden', notifications.length > 0);
   });
@@ -1337,13 +1358,37 @@ async function markNotificationRead(row) {
     const updated = await apiFetch(`/api/notifications/${encodeURIComponent(id)}/read`, { method: 'PUT' });
     if (!Gather.api.token() || !updated) return;
     const index = Gather.state.notifications.findIndex(entry => entry.id === updated.id);
-    if (index !== -1) Gather.state.notifications[index] = updated;
+    if (index !== -1) {
+      Gather.state.notifications[index] = { ...item, ...updated, postId: updated.postId || item.postId };
+    }
     paintNotifications();
   } catch (error) {
     item.read = false;
     paintNotifications();
     showNotificationError(error);
   }
+}
+
+function notificationPostUrl(row) {
+  if (row instanceof HTMLAnchorElement && row.getAttribute('href')) return row.getAttribute('href');
+  const postId = row?.dataset.postId || '';
+  return postId ? `home.html?post=${encodeURIComponent(postId)}` : '';
+}
+
+async function openNotification(element) {
+  const row = element.closest('.notification-row');
+  if (!row) return;
+  const postUrl = notificationPostUrl(row);
+  const item = Gather.state.notifications.find(entry => entry.id === row.dataset.notificationId);
+  if (!postUrl) {
+    if (item && !item.read) await markNotificationRead(row);
+    return;
+  }
+  if (item && !item.read && Gather.api.token()) {
+    item.read = true;
+    apiFetch(`/api/notifications/${encodeURIComponent(row.dataset.notificationId)}/read`, { method: 'PUT', keepalive: true }).catch(() => {});
+  }
+  window.location.assign(postUrl);
 }
 
 async function markNotificationsRead() {
@@ -1356,15 +1401,40 @@ async function markNotificationsRead() {
 async function respondToRequest(element, accept) {
   const id = element.dataset.notificationId;
   if (!id) return;
-  const updated = await apiFetch(`/api/notifications/${encodeURIComponent(id)}/${accept ? 'accept' : 'decline'}`, { method: 'POST' });
-  if (!updated) return;
-  const index = Gather.state.notifications.findIndex(item => item.id === updated.id);
-  if (index === -1) Gather.state.notifications.unshift(updated);
-  else Gather.state.notifications[index] = updated;
-  if (accept && updated.actorId && !Gather.state.friends.includes(updated.actorId)) {
-    Gather.state.friends.push(updated.actorId);
+  const item = Gather.state.notifications.find(entry => entry.id === id);
+  if (item && item.status && item.status !== 'pending') return;
+  const previousStatus = item?.status;
+  const previousRead = item?.read;
+  if (item) {
+    item.status = accept ? 'accepted' : 'declined';
+    item.read = true;
   }
   paintNotifications();
+  try {
+    const updated = await apiFetch(`/api/notifications/${encodeURIComponent(id)}/${accept ? 'accept' : 'decline'}`, { method: 'POST' });
+    if (!updated) {
+      if (item) {
+        item.status = previousStatus;
+        item.read = previousRead;
+      }
+      paintNotifications();
+      return;
+    }
+    const index = Gather.state.notifications.findIndex(entry => entry.id === updated.id);
+    if (index === -1) Gather.state.notifications.unshift(updated);
+    else Gather.state.notifications[index] = updated;
+    if (accept && updated.actorId && !Gather.state.friends.includes(updated.actorId)) {
+      Gather.state.friends.push(updated.actorId);
+    }
+    paintNotifications();
+  } catch (error) {
+    if (item) {
+      item.status = previousStatus;
+      item.read = previousRead;
+    }
+    paintNotifications();
+    throw error;
+  }
 }
 
 document.addEventListener('click', event => {
@@ -1376,7 +1446,7 @@ document.addEventListener('click', event => {
   const work = action === 'mark-read'
     ? markNotificationsRead()
     : action === 'read-notification'
-      ? markNotificationRead(element)
+      ? openNotification(element)
       : respondToRequest(element, action === 'accept-request');
   work.catch(showNotificationError);
 }, true);
